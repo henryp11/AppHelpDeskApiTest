@@ -8,7 +8,7 @@ const {
   boomErrorHandler,
 } = require("./middlewares/errorHandle");
 const app = express(); //Express es un método que me va a crear la aplicación
-const port = 3000;
+const port = process.env.PORT || 3000; //Puerto será leido desde variable de entorno para producción
 
 app.use(express.json()); // Middleware para habilitar las peticiones en JSON
 
@@ -31,8 +31,12 @@ const options = {
 app.use(cors(options)); //Solo dominios permitidos
 
 //Levanto mi servidor y envío un respuesta, usando la ruta deseada
-app.get("/", (req, res) => {
+app.get("/api", (req, res) => {
   res.send("Hola desde el servidor de express");
+});
+
+app.get("/api/otra-ruta", (req, res) => {
+  res.send("Hola desde otra RUTA");
 });
 
 routerApi(app);
