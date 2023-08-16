@@ -2,6 +2,7 @@ const { Model, DataTypes, Sequelize } = require("sequelize");
 
 const DET_TICKETS_TABLE = "det_tickets";
 const { MTR_TICKETS_TABLE } = require("./mtrTicketsModel");
+const { AGENTES_TABLE } = require("./agentesModel");
 
 //Indicar que esquema se requiere que se cree en la base de datos, es decir sus campos y atributos de campo
 const detTicketsSchema = {
@@ -48,6 +49,12 @@ const detTicketsSchema = {
   },
   agente_asig: {
     type: DataTypes.STRING(4),
+    references: {
+      model: AGENTES_TABLE,
+      key: "id_agente",
+    },
+    onUpdate: "CASCADE",
+    onDelete: "SET NULL",
     comment: "Agente que está dando solución a la solicitud dentro del ticket",
   },
   fecha_ini_solucion: {
@@ -60,11 +67,16 @@ const detTicketsSchema = {
     comment:
       "Fecha y hora final real en que se da solución a la solicitud del ticket",
   },
+  solucion: {
+    type: DataTypes.TEXT,
+    comment:
+      "Detalle de la solución de la solicitud por parte del agente de soporte",
+  },
   estatus: {
     allowNull: false,
     type: DataTypes.STRING(11),
     defaultValue: "solicitado",
-    commnet:
+    comment:
       "Determina el estado de la solicitud (pendiente, proceso, pausado, reasignado, finalizado, anulado)",
   },
   created_at: {
@@ -87,6 +99,10 @@ class DetTickets extends Model {
       as: "mtr_tickets",
       // foreignKey: ["id_cliente", "id_emp"],
       foreignKey: "id_ticket",
+    });
+    this.belongsTo(models.Agentes, {
+      as: "agentes_sop",
+      foreignKey: "agente_asig",
     });
   }
 

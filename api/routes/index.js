@@ -11,9 +11,11 @@ const usersRouter = require("./usersRouter");
 const PersonalEmp = require("./personalEmpRouter");
 const tickets = require("./mtrTicketsRouter");
 const detTickets = require("./detTicketsRouter");
+const controlTickets = require("./controlTicketsRouter");
 const ticketsByClient = require("./ticketsClientRouter");
 const authRouter = require("./authRouter");
 const planesRouter = require("./planesRouter");
+const agentesRouter = require("./agentesRouter");
 
 function routerApi(app) {
   const mainRouteApi = express.Router();
@@ -29,9 +31,11 @@ function routerApi(app) {
   mainRouteApi.use("/personal-empresa", PersonalEmp); //Servicios Personal en Empresas
   mainRouteApi.use("/tickets", tickets); //Servicios de tickets
   mainRouteApi.use("/detalle-tickets", detTickets); //Servicios de solicitudes
+  mainRouteApi.use("/control-tickets", controlTickets); //Servicios para monitoreo de control por solicitud
   mainRouteApi.use("/profile", ticketsByClient); //Servicios de tickets por cliente
   mainRouteApi.use("/auth", authRouter); //Servicios de autenticación y autorización
   mainRouteApi.use("/planes", planesRouter); //Servicios de planes de mantenimiento
+  mainRouteApi.use("/agentes", agentesRouter); //Servicios para gentes de soporte
 }
 
 module.exports = routerApi;

@@ -13,7 +13,6 @@ const capturas = Joi.object({
 const agente_asig = Joi.string().alphanum().min(4).max(4);
 const fecha_ini_solucion = Joi.date().timestamp();
 const fecha_fin_solucion = Joi.date().timestamp();
-const tiempo_calc_sop = Joi.number().precision(2);
 const estatus = Joi.string().max(11);
 //Para Paginación
 const offset = Joi.number().integer();

@@ -12,9 +12,9 @@ const descrip_tk = Joi.string().min(4).max(255);
 const fecha_reg = Joi.date().timestamp();
 const fecha_ini_sop = Joi.date().timestamp();
 const fecha_fin_sop = Joi.date().timestamp();
-const tiempo_calc_sop = Joi.number().precision(2);
-const tiempo_diferencial = Joi.number().precision(2);
-const tiempo_real_sop = Joi.number().precision(2);
+const tiempo_calc_sop = Joi.number().precision(6);
+const tiempo_diferencial = Joi.number().precision(6);
+const tiempo_real_sop = Joi.number().precision(6);
 const estatus = Joi.string().max(11);
 //Para Paginación
 const offset = Joi.number().integer();

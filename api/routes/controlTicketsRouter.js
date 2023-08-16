@@ -1,24 +1,24 @@
 const express = require("express");
 const passport = require("passport");
-const DetTicketServices = require("../services/detTicketService"); //Import clase de los servicios
+const ControlTicketServices = require("../services/controlTicketService"); //Import clase de los servicios
 const validatorHandler = require("../middlewares/validatorHandler");
 const { checkAdminRole, checkRoles } = require("../middlewares/authHandler"); //Traigo el validador de permisos
 const {
-  createSolicitudSchema,
-  updateSolicitudSchema,
-  getSolicitudSchema,
-  querySolicitudSchema,
-} = require("../schemas/detTicketsSchema");
+  createControlSchema,
+  updateControlSchema,
+  getControlSchema,
+  queryControlSchema,
+} = require("../schemas/controlTicketsSchema");
 
 const router = express.Router();
-const service = new DetTicketServices(); //Creo el objeto de servicios
+const service = new ControlTicketServices(); //Creo el objeto de servicios
 
 //Get para todas las empresas con paginación
 router.get(
   "/",
   passport.authenticate("jwt", { session: false }),
   async (req, res, next) => {
-    validatorHandler(querySolicitudSchema, "query");
+    validatorHandler(queryControlSchema, "query");
     try {
       const data = await service.find(req.query);
       res.json(data);
@@ -30,17 +30,17 @@ router.get(
 
 //Creando Post
 router.post(
-  "/:id_ticket",
+  "/:id_ticket/:id_solicitud",
   passport.authenticate("jwt", { session: false }),
   //Una vez validad la capa de autenticación, obtiene el payload para usar el middleware de permisos
-  validatorHandler(getSolicitudSchema, "params"),
-  validatorHandler(createSolicitudSchema, "body"),
+  validatorHandler(getControlSchema, "params"),
+  validatorHandler(createControlSchema, "body"),
   async (req, res, next) => {
     try {
-      const { id_ticket } = req.params;
+      const { id_ticket, id_solicitud } = req.params;
       const body = req.body;
       // const user = req.user;
-      const newReg = await service.create(body, id_ticket);
+      const newReg = await service.create(body, id_ticket, id_solicitud);
       res.status(201).json(newReg);
     } catch (error) {
       next(error);
@@ -48,10 +48,10 @@ router.post(
   }
 );
 
-//Get por ticket con todas sus solicitudes
+//Get por ticket con todos los controles
 router.get(
   "/:id_ticket",
-  validatorHandler(getSolicitudSchema, "params"), //Mando el esquema y las propidades de busqueda en este caso params
+  validatorHandler(getControlSchema, "params"), //Mando el esquema y las propidades de busqueda en este caso params
   async (req, res, next) => {
     try {
       const { id_ticket } = req.params;
@@ -65,7 +65,7 @@ router.get(
 //Get solo solicitud específica
 router.get(
   "/:id_solicitud",
-  validatorHandler(getSolicitudSchema, "params"), //Mando el esquema y las propidades de busqueda en este caso params
+  validatorHandler(getControlSchema, "params"), //Mando el esquema y las propidades de busqueda en este caso params
   async (req, res, next) => {
     try {
       const { id_solicitud } = req.params;
@@ -79,14 +79,14 @@ router.get(
 
 //REVISAR FUNCION PARA ACTUALZIAR POR BUSQUEDA DENTRO DEL TICKET
 router.patch(
-  "/:id_solicitud",
-  validatorHandler(getSolicitudSchema, "params"), //Primero valido el id
-  validatorHandler(updateSolicitudSchema, "body"), //luego el body
+  "/:id_control",
+  validatorHandler(getControlSchema, "params"), //Primero valido el id
+  validatorHandler(updateControlSchema, "body"), //luego el body
   async (req, res, next) => {
     try {
-      const { id_solicitud } = req.params;
+      const { id_control } = req.params;
       const body = req.body;
-      const regUpdate = await service.update(id_solicitud, body);
+      const regUpdate = await service.update(id_control, body);
       res.json(regUpdate);
     } catch (error) {
       next(error);
@@ -95,12 +95,12 @@ router.patch(
 );
 
 router.delete(
-  "/:id_solicitud",
-  validatorHandler(getSolicitudSchema, "params"), //Primero valido el id
+  "/:id_control",
+  validatorHandler(getControlSchema, "params"), //Primero valido el id
   async (req, res, next) => {
     try {
-      const { id_solicitud } = req.params;
-      const regDelete = await service.delete(id_solicitud);
+      const { id_control } = req.params;
+      const regDelete = await service.delete(id_control);
       res.json(regDelete);
     } catch (error) {
       next(error);
