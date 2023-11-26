@@ -1,27 +1,34 @@
-const express = require("express");
-const UsersServices = require("../services/usersService"); //Import clase de los servicios
-const validatorHandler = require("../middlewares/validatorHandler");
+const express = require('express');
+const passport = require('passport');
+const UsersServices = require('../services/usersService'); //Import clase de los servicios
+const validatorHandler = require('../middlewares/validatorHandler');
+const { checkAdminRole } = require('../middlewares/authHandler'); //Traigo el validador de permisos
 const {
   createUserSchema,
   updateUserSchema,
   getUserSchema,
-} = require("../schemas/usersSchema");
+} = require('../schemas/usersSchema');
 
 const router = express.Router();
 const service = new UsersServices(); //Creo el objeto de servicios
 
-router.get("/", async (req, res, next) => {
-  try {
-    const data = await service.find();
-    res.json(data);
-  } catch (error) {
-    next(error);
+router.get(
+  '/',
+  passport.authenticate('jwt', { session: false }),
+  checkAdminRole,
+  async (req, res, next) => {
+    try {
+      const data = await service.find();
+      res.json(data);
+    } catch (error) {
+      next(error);
+    }
   }
-});
+);
 
 router.post(
-  "/",
-  validatorHandler(createUserSchema, "body"),
+  '/',
+  validatorHandler(createUserSchema, 'body'),
   async (req, res, next) => {
     try {
       const body = req.body;
@@ -34,8 +41,8 @@ router.post(
 );
 
 router.get(
-  "/:id_user",
-  validatorHandler(getUserSchema, "params"), //Mando el esquema y las propidades de busqueda en este caso params
+  '/:id_user',
+  validatorHandler(getUserSchema, 'params'), //Mando el esquema y las propidades de busqueda en este caso params
   async (req, res, next) => {
     try {
       const { id_user } = req.params;
@@ -48,9 +55,9 @@ router.get(
 );
 
 router.patch(
-  "/:id_user",
-  validatorHandler(getUserSchema, "params"), //Primero valido el id
-  validatorHandler(updateUserSchema, "body"), //luego el body
+  '/:id_user',
+  validatorHandler(getUserSchema, 'params'), //Primero valido el id
+  validatorHandler(updateUserSchema, 'body'), //luego el body
   async (req, res, next) => {
     try {
       const { id_user } = req.params;
@@ -64,8 +71,10 @@ router.patch(
 );
 
 router.delete(
-  "/:id_user",
-  validatorHandler(getUserSchema, "params"), //Primero valido el id
+  '/:id_user',
+  passport.authenticate('jwt', { session: false }),
+  checkAdminRole,
+  validatorHandler(getUserSchema, 'params'), //Primero valido el id
   async (req, res, next) => {
     try {
       const { id_user } = req.params;

@@ -1,25 +1,25 @@
-const express = require("express");
-const passport = require("passport");
-const PlanServices = require("../services/planesService"); //Import clase de los servicios
-const validatorHandler = require("../middlewares/validatorHandler");
-const { checkAdminRole, checkRoles } = require("../middlewares/authHandler"); //Traigo el validador de permisos
+const express = require('express');
+const passport = require('passport');
+const PlanServices = require('../services/planesService'); //Import clase de los servicios
+const validatorHandler = require('../middlewares/validatorHandler');
+const { checkAdminRole } = require('../middlewares/authHandler'); //Traigo el validador de permisos
 const {
   createPlanSchema,
   updatePlanSchema,
   getPlanSchema,
   queryPlanSchema,
-} = require("../schemas/planesSchema");
+} = require('../schemas/planesSchema');
 
 const router = express.Router();
 const service = new PlanServices(); //Creo el objeto de servicios
 
 //Get para todos los planes con paginación
 router.get(
-  "/",
-  passport.authenticate("jwt", { session: false }),
+  '/',
+  passport.authenticate('jwt', { session: false }),
   checkAdminRole,
   async (req, res, next) => {
-    validatorHandler(queryPlanSchema, "query");
+    validatorHandler(queryPlanSchema, 'query');
     try {
       const data = await service.find(req.query);
       res.json(data);
@@ -31,11 +31,11 @@ router.get(
 
 //Creando Post
 router.post(
-  "/",
-  passport.authenticate("jwt", { session: false }),
+  '/',
+  passport.authenticate('jwt', { session: false }),
   checkAdminRole,
   //Una vez validad la capa de autenticación, obtiene el payload para usar el middleware de permisos
-  validatorHandler(createPlanSchema, "body"),
+  validatorHandler(createPlanSchema, 'body'),
   async (req, res, next) => {
     try {
       const body = req.body;
@@ -49,10 +49,10 @@ router.post(
 
 //Get para empresa por id
 router.get(
-  "/:id_plan",
-  passport.authenticate("jwt", { session: false }),
+  '/:id_plan',
+  passport.authenticate('jwt', { session: false }),
   checkAdminRole,
-  validatorHandler(getPlanSchema, "params"), //Mando el esquema y las propidades de busqueda en este caso params
+  validatorHandler(getPlanSchema, 'params'), //Mando el esquema y las propidades de busqueda en este caso params
   async (req, res, next) => {
     try {
       const { id_plan } = req.params;
@@ -65,11 +65,11 @@ router.get(
 );
 
 router.patch(
-  "/:id_plan",
-  passport.authenticate("jwt", { session: false }),
+  '/:id_plan',
+  passport.authenticate('jwt', { session: false }),
   checkAdminRole,
-  validatorHandler(getPlanSchema, "params"), //Primero valido el id
-  validatorHandler(updatePlanSchema, "body"), //luego el body
+  validatorHandler(getPlanSchema, 'params'), //Primero valido el id
+  validatorHandler(updatePlanSchema, 'body'), //luego el body
   async (req, res, next) => {
     try {
       const { id_plan } = req.params;
@@ -83,10 +83,10 @@ router.patch(
 );
 
 router.delete(
-  "/:id_plan",
-  passport.authenticate("jwt", { session: false }),
+  '/:id_plan',
+  passport.authenticate('jwt', { session: false }),
   checkAdminRole,
-  validatorHandler(getPlanSchema, "params"), //Primero valido el id
+  validatorHandler(getPlanSchema, 'params'), //Primero valido el id
   async (req, res, next) => {
     try {
       const { id_plan } = req.params;

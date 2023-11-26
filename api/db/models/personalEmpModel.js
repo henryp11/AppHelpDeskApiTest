@@ -1,8 +1,8 @@
-const { Model, DataTypes, Sequelize } = require("sequelize");
+const { Model, DataTypes, Sequelize } = require('sequelize');
 
-const PERSONAL_EMP_TABLE = "personal_emp";
-const { EMPRESAS_TABLE } = require("./empresasModel");
-const { USERS_TABLE } = require("./usersModel");
+const PERSONAL_EMP_TABLE = 'personal_emp';
+const { EMPRESAS_TABLE } = require('./empresasModel');
+const { USERS_TABLE } = require('./usersModel');
 
 //Indicar que esquema se requiere que se cree en la base de datos, es decir sus campos y atributos de campo
 const PersonalEmpSchema = {
@@ -11,7 +11,7 @@ const PersonalEmpSchema = {
     primaryKey: true,
     type: DataTypes.STRING(10),
     comment:
-      "Número de cédula o comprobante de identificación del empleado perteneciente a una empresa",
+      'Número de cédula o comprobante de identificación del empleado perteneciente a una empresa',
   },
   id_emp: {
     allowNull: false,
@@ -19,10 +19,10 @@ const PersonalEmpSchema = {
     type: DataTypes.STRING(4),
     references: {
       model: EMPRESAS_TABLE,
-      key: "id_emp",
+      key: 'id_emp',
     },
-    onUpdate: "CASCADE",
-    onDelete: "SET NULL",
+    onUpdate: 'CASCADE',
+    onDelete: 'SET NULL',
   },
   nombre: {
     allowNull: false,
@@ -49,14 +49,14 @@ const PersonalEmpSchema = {
     type: DataTypes.STRING(100),
   },
   id_user: {
-    allowNull: false,
+    allowNull: true,
     type: DataTypes.INTEGER,
     references: {
       model: USERS_TABLE,
-      key: "id_user",
+      key: 'id_user',
     },
-    onUpdate: "CASCADE",
-    onDelete: "SET NULL",
+    onUpdate: 'CASCADE',
+    onDelete: 'SET NULL',
   },
   estatus: {
     allowNull: false,
@@ -66,13 +66,13 @@ const PersonalEmpSchema = {
   created_at: {
     allowNull: false,
     type: DataTypes.DATE,
-    field: "created_at",
+    field: 'created_at',
     defaultValue: DataTypes.NOW,
   },
   updated_at: {
     allowNull: false,
     type: DataTypes.DATE,
-    field: "updated_at",
+    field: 'updated_at',
     defaultValue: DataTypes.NOW,
   },
 };
@@ -80,15 +80,15 @@ const PersonalEmpSchema = {
 class PersonalEmp extends Model {
   static assocciate(models) {
     //Relación al modelo de empresas, uso this directo porque me refiero a la misma clase
-    this.belongsTo(models.Empresa, { as: "empresa", foreignKey: "id_emp" });
-    this.belongsTo(models.Users, { as: "users", foreignKey: "id_user" });
+    this.belongsTo(models.Empresa, { as: 'empresa', foreignKey: 'id_emp' });
+    this.belongsTo(models.Users, { as: 'users', foreignKey: 'id_user' });
   }
 
   static config(sequelize) {
     return {
       sequelize,
       tableName: PERSONAL_EMP_TABLE,
-      modelName: "PersonalEmp",
+      modelName: 'PersonalEmp',
       timestamps: false,
     };
   }

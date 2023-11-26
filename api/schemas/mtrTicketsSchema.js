@@ -1,4 +1,4 @@
-const Joi = require("joi");
+const Joi = require('joi');
 
 const id_ticket = Joi.number().integer();
 const id_cliente = Joi.string()
@@ -9,9 +9,9 @@ const id_emp = Joi.string().alphanum().min(4).max(4);
 const prioridad = Joi.string().alphanum().min(4).max(4);
 const id_tipo = Joi.string().alphanum().min(4).max(4);
 const descrip_tk = Joi.string().min(4).max(255);
-const fecha_reg = Joi.date().timestamp();
-const fecha_ini_sop = Joi.date().timestamp();
-const fecha_fin_sop = Joi.date().timestamp();
+const fecha_reg = Joi.any(); //Verficar validación formato timestamp
+const fecha_ini_sop = Joi.any();
+const fecha_fin_sop = Joi.any();
 const tiempo_calc_sop = Joi.number().precision(6);
 const tiempo_diferencial = Joi.number().precision(6);
 const tiempo_real_sop = Joi.number().precision(6);

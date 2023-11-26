@@ -1,4 +1,4 @@
-const Joi = require("joi");
+const Joi = require('joi');
 
 const id_ticket = Joi.number().integer();
 const id_solicitud = Joi.number().integer();
@@ -11,8 +11,9 @@ const capturas = Joi.object({
   url: Joi.string().uri(),
 });
 const agente_asig = Joi.string().alphanum().min(4).max(4);
-const fecha_ini_solucion = Joi.date().timestamp();
-const fecha_fin_solucion = Joi.date().timestamp();
+const fecha_ini_solucion = Joi.any();
+const fecha_fin_solucion = Joi.any();
+const solucion = Joi.string();
 const estatus = Joi.string().max(11);
 //Para Paginación
 const offset = Joi.number().integer();
@@ -29,6 +30,7 @@ const createSolicitudSchema = Joi.object({
   agente_asig: agente_asig,
   fecha_ini_solucion: fecha_ini_solucion,
   fecha_fin_solucion: fecha_fin_solucion,
+  solucion: solucion,
   estatus: estatus,
 });
 
@@ -43,6 +45,7 @@ const updateSolicitudSchema = Joi.object({
   agente_asig: agente_asig,
   fecha_ini_solucion: fecha_ini_solucion,
   fecha_fin_solucion: fecha_fin_solucion,
+  solucion: solucion,
   estatus: estatus,
 });
 

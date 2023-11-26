@@ -1,18 +1,38 @@
-const bcrypt = require("bcrypt");
-const boom = require("@hapi/boom");
-const UserService = require("./usersService");
+/** Servicios de autorización
+ * @module Servicios_Autorizacion
+ */
+
+/** Requiere la dependencia bcrypt para encriptar datos con hash*/
+const bcrypt = require('bcrypt');
+/** Requiere la dependencia boom para mostrar mensajes personalizados tanto de éxito como de errores */
+const boom = require('@hapi/boom');
+
+/**Requiere los servicios de usuarios: {@link module:Servicios_Usuarios} */
+const UserService = require('./usersService');
+/** Se crea el objeto de tipo UserService para usar las funciones de los servicios de usuario: {@link module:Servicios_Usuarios} */
 const service = new UserService();
-const jwt = require("jsonwebtoken");
-const nodemailer = require("nodemailer");
 
-const { config } = require("../../config/config");
+/** Requiere la dependencia jsonwebtoken para el uso de tokens */
+const jwt = require('jsonwebtoken');
 
+/** Requiere la dependencia nodemailer para utilizar servidor de correos */
+const nodemailer = require('nodemailer');
+
+const { config } = require('../../config/config');
+
+/** Clase para ejecutar los diferentes servicios de Autenticación */
 class AuthService {
-  //Servicio para obtener usuario por su email y password
+  /**
+   * Servicio para obtener usuario por su email y password,
+   * utiliza la función findByEmail() desde: {@link module:Servicios_Usuarios~UsersServices#findByEmail}
+   * @param {string} email email/usuario para iniciar sesión
+   * @param {string} password contraseña
+   * @return {Object} Información de todo el usuario
+   */
   async getUser(email, password) {
     const user = await service.findByEmail(email);
     if (!user) {
-      //Aqui no uso done porque es función de Strategy de la librería de passport
+      //Aqui no uso done() porque es función de Strategy de la librería de passport
       //done(boom.unauthorized(), false);
       throw boom.unauthorized();
     }
@@ -25,26 +45,48 @@ class AuthService {
     return user;
   }
 
-  //Servicio para firmar token
+  /** Servicio para firmar token, realiza el firmado del token mediante la función sign() de JWT
+   * @see https://github.com/auth0/node-jsonwebtoken#jwtsignpayload-secretorprivatekey-options-callback
+   * @param {Object} user Datos del usuario registrado, de donde se extraerá su id_user, rol y estatus
+   * @return {Object} Información de todo el usuario
+   * @return {string} Token asignado al usuario
+   */
   signToken(user) {
-    //Preparo información para armar token
-    //el "user" vendrá de la ruta de la petición
+    //Preparo información para armar token, el objeto "user" vendrá de la ruta de la petición
+    //en el caso de datos de la empresa (idEmp, nameEmp, havePlan), puede darse el caso de que aun no haya sido asignado
+    //Un usuario a su respectiva emrpesa (ejemplo, por migración inicial de datos o un usuario que solo se registro en el sistema pero no se asigno a ninguna empresa)
+    //Por tal motivo se evalua que la propiedad user.personalEmp no se nula, ya que el API envía en su consulta esa información, pero si no existem lo manda como NULL
+    //de esta forma puedo identificar los datos de la empresa del usuario se ingrese al sistema mediante su token y realizar varias acciones dependiendo del caso
     const payload = {
       sub: user.id_user,
       perfil: user.rol,
       status: user.estatus,
-      //idCliente: user.personalEmp.id_per,
-      // idEmp: user.personalEmp.id_emp,
-      // vigenciaPlan: user.personalEmp.empresa.planMant,
+      username: user.username,
+      mail: user.mail,
+      idEmp:
+        user.personalEmp === null ? 'SIN_EMPRESA' : user.personalEmp.id_emp,
+      nameEmp:
+        user.personalEmp === null
+          ? 'SIN_EMPRESA'
+          : user.personalEmp.empresa.nombre_emp,
+      idClient:
+        user.personalEmp === null ? 'SIN_EMPRESA' : user.personalEmp.id_per,
+      havePlan:
+        user.personalEmp === null ? false : user.personalEmp.empresa.planMant,
     };
-    const token = jwt.sign(payload, config.jwtSecret, { expiresIn: "1h" });
+    const token = jwt.sign(payload, config.jwtSecret, { expiresIn: '1h' });
 
     return { user, token };
   }
 
   //Función que se reutilizará para otro tipo de enviós de correo
+  /** Servicio para enviar correos usando el servicio de nodeMailer, se la invocará dependiendo del tipo de correo a enviar
+   * @see https://nodemailer.com/about/#example
+   * @param {Object} infoMail Información del correo a enviar
+   * @return {{string}} Objeto con un mensaje de confirmación
+   */
   async sendMail(infoMail) {
-    //CreateTransport(), función de nodemail
+    //CreateTransport() --> función de nodemail
     const transporter = nodemailer.createTransport({
       host: config.emailSenderHost,
       secure: true,
@@ -56,8 +98,13 @@ class AuthService {
     });
 
     await transporter.sendMail(infoMail);
-    return { message: "Correo enviado con éxito!!" };
+    return { message: 'Correo enviado con éxito!!' };
   }
+
+  /** Función para enviar correo de recuperación de contraseña, se genera un token temporal de 15 minutos para la recuperación
+   * @param {string} email Email a buscar con el servicio de usuarios findByEmail de la clase {@link module:Servicios_Usuarios~UsersServices#findByEmail}
+   * @return {response} Objeto con la respuesta del envío, es decir el correo de recuperación
+   */
   async sendRecoveryMail(email) {
     // Primero busco si el usuario existe previamente por su email
     const user = await service.findByEmail(email);
@@ -67,27 +114,38 @@ class AuthService {
     }
     //Genero token para recuperar contraseña
     const payload = { sub: user.id_user };
-    const token = jwt.sign(payload, config.jwtSecret, { expiresIn: "15min" });
+    const token = jwt.sign(payload, config.jwtSecret, { expiresIn: '15min' });
     //El link se enviará a la vista del frontend para que recupere la contraseña
     //En el cual se enviará el token.
-    const link = `http://myfrontend.com/recovery?token=${token}`;
+    // const link = `http://myfrontend.com/recovery?token=${token}&mail=${email}`;
+    const link = `http://localhost:3001/recovery/changepass?rectk=${token}&mail=${email}`;
 
-    //Uso la función de update del modelo de usuario para actualizar
-    //el nuevo campo creado con la infomración de token y almacenarlo en la BD
+    //Uso la función de update() del modelo de usuario para actualizar
+    //el nuevo campo creado con la información del token y almacenarlo en la BD
     await service.update(user.id_user, { recovery_token: token });
 
     const mail = {
       from: `${config.emailSender}`,
       to: `${user.mail}`, //Si se encuentra el usuario extraigo su email del objeto
-      subject: "Recuperación de Contraseña para app de Soporte Capacity-Soft",
-      html: `<b>Para recuperar tu contraseña, ingresa al siguiente link <br/> 
-      <a href=${link}>${link}</a></br>`,
+      subject: 'Recuperación de Contraseña para app de Soporte Capacity-Soft',
+      html: `<div>Has realizado una solicitud para recuperación de tu contraseña. <br/> 
+      Por favor <b>ingresa al siguiente enlace para realizar el cambio de contraseña:<b>
+      <b><a href=${link}>${link}</a></b></div>`,
     };
 
     const response = await this.sendMail(mail);
     return response;
   }
 
+  /** Función para cambiar la contraseña del usuario, se utiliza la función verify() de jwt para verificar
+   * el token de recuperación que coincida con el token guardado a la BD para poder cambiar la contraseña.
+   * Se utilizan los métodos de la clase de servicios de usuario,
+   * filterId: {@link module:Servicios_Usuarios~UsersServices#filterId} y update: {@link module:Servicios_Usuarios~UsersServices#update}
+   * @see https://github.com/auth0/node-jsonwebtoken#jwtverifytoken-secretorpublickey-options-callback
+   * @param {string} token Token de la sesión activa para el cambio de contraseña
+   * @param {string} newPassword Nueva contraseña
+   * @return {Object} Objeto con la respuesta de confirmación de cambio de contraseña
+   */
   async changePassword(token, newPassword) {
     try {
       // 1. Verifico el token firmado
@@ -105,7 +163,7 @@ class AuthService {
         recovery_token: null,
         password: hash,
       });
-      return { message: "Contraseña cambiada con éxito" };
+      return { message: 'Contraseña actualizada con éxito' };
     } catch (error) {
       throw boom.unauthorized();
     }

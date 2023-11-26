@@ -1,19 +1,19 @@
-const Joi = require("joi");
+const Joi = require('joi');
 
 //Realizo un esquema para cada campo para validar su formato
 // se debe empezar por indicar el tipo de campo y luego la validación
 
 // const id = Joi.string().uuid(); //No se le coloca como requerido ya que lo autogenero
 const id_emp = Joi.string().alphanum().min(4).max(4);
-const nombre_emp = Joi.string().min(2).max(30);
+const nombre_emp = Joi.string().min(2).max(255);
 const ruc = Joi.string()
   .pattern(/^[0-9]+$/)
   .min(13)
   .max(13);
-const direccion = Joi.string().min(2).max(30);
+const direccion = Joi.string().min(2).max(255);
 const telefono = Joi.string().min(2).max(15);
-const correo = Joi.string().email().max(30);
-const correo_secund = Joi.string().email().max(30);
+const correo = Joi.string().email().max(100);
+const correo_secund = Joi.string().email().max(100);
 const ciudad = Joi.string().min(2).max(15);
 const planMant = Joi.boolean();
 const estatus = Joi.boolean();
@@ -57,6 +57,7 @@ const queryEmpresaSchema = Joi.object({
   limit,
   offset,
   planMant,
+  ruc,
 });
 
 module.exports = {

@@ -1,11 +1,11 @@
-const boom = require("@hapi/boom");
-const { Op } = require("sequelize"); //Para usar operadores de consultas directo desde sequelize
-const { models } = require("../libs/sequelize"); //Usando ORM PARA USAR MODELOS
+const boom = require('@hapi/boom');
+const { Op } = require('sequelize'); //Para usar operadores de consultas directo desde sequelize
+const { models } = require('../libs/sequelize'); //Usando ORM PARA USAR MODELOS
 
 class DetTicketServices {
   async find(query) {
     const { limit, offset } = query;
-    const options = { where: {}, order: [["id_ticket", "ASC"]] }; //Para añadir opciones al método del ORM en este caso limit y offset
+    const options = { where: {}, order: [['id_ticket', 'ASC']] }; //Para añadir opciones al método del ORM en este caso limit y offset
     //Valido si se envián los query params y los añado al objeto
     if (limit && offset) {
       options.limit = limit;
@@ -19,7 +19,22 @@ class DetTicketServices {
   async filterId(id) {
     const answer = await models.DetTickets.findByPk(id);
     if (!answer) {
-      throw boom.notFound("Ticket no encontrado");
+      throw boom.notFound('Solcitud no encontrada');
+    }
+    return answer;
+  }
+
+  async filterIdTicketIdSolicitud(id_ticket, id_solicitud) {
+    const options = {
+      where: {
+        id_ticket: id_ticket,
+        id_solicitud: id_solicitud,
+      },
+    };
+
+    const answer = await models.DetTickets.findAll(options);
+    if (!answer) {
+      throw boom.notFound('Ticket o Solicitud no encontrado');
     }
     return answer;
   }
@@ -30,9 +45,9 @@ class DetTicketServices {
       //El simbolo "$" permite a sequelize realizar una consulta anidada en base a la asociación
       //que deseo en este caso busco el id_user anidado en el personal_emp y su asociación de users
       where: {
-        "$personal_emp.users.id_user$": userId,
+        '$personal_emp.users.id_user$': userId,
       },
-      include: [{ association: "personal_emp", include: ["users"] }],
+      include: [{ association: 'personal_emp', include: ['users'] }],
     });
     return tickets;
   }
@@ -42,13 +57,20 @@ class DetTicketServices {
       ...data,
       id_ticket: ticketId,
     });
-    return { message: "Registro creado con éxito", newRegister };
+    return { message: 'Registro creado con éxito', newRegister };
   }
 
-  async update(id, changes) {
-    const findReg = await this.filterId(id);
-    const dataUpdate = await findReg.update(changes);
-    return { message: "Datos actualizados", dataUpdate };
+  async update(id_ticket, id_solicitud, changes) {
+    // const findReg = await this.filterId(id);
+    const findReg = await this.filterIdTicketIdSolicitud(
+      id_ticket,
+      id_solicitud
+    );
+    //La función de búsqueda es findAll mediante un query para hallar el registro
+    //y este devuelve un Array, por ende ingreso a esa posición para aplicar
+    //la función de update de sequelize ya que estas se aplican solo a objetos
+    const dataUpdate = await findReg[0].update(changes);
+    return { message: 'Datos actualizados', dataUpdate };
   }
 
   async delete(id) {

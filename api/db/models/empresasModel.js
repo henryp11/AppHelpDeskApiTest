@@ -1,51 +1,51 @@
-const { Model, DataTypes, Sequelize } = require("sequelize");
+const { Model, DataTypes, Sequelize } = require('sequelize');
 
 //Empezar a definir el nombre de la tabla con toda la estructura, nombre de la tabla en mayúsculas
-const EMPRESAS_TABLE = "empresas";
+const EMPRESAS_TABLE = 'empresas';
 
 //Indicar que esquema se requiere que se cree en la base de datos, es decir sus campos y atributos de campo
 const EmpresaSchema = {
   id_emp: {
     allowNull: false,
     primaryKey: true,
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(4),
   },
   nombre_emp: {
     allowNull: false,
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(255),
     unique: true,
   },
   ruc: {
     allowNull: false,
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(13),
     unique: true,
   },
   direccion: {
     allowNull: false,
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(255),
   },
   telefono: {
     allowNull: false,
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(15),
   },
   correo: {
     allowNull: false,
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(100),
   },
   correo_secund: {
     allowNull: true,
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(100),
   },
   ciudad: {
     allowNull: true,
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(15),
   },
   //Si deseo nombrar la variable en JS con Cammel case u otro nombre, debo especificar el campo al que
   //hará referencia en la base de datos, con el atributo field, ya que en bases de datos se usa snake case
   planMant: {
     allowNull: true,
     type: DataTypes.BOOLEAN,
-    field: "plan_mant",
+    field: 'plan_mant',
     defaultValue: false,
   },
   estatus: {
@@ -56,13 +56,13 @@ const EmpresaSchema = {
   created_at: {
     allowNull: false,
     type: DataTypes.DATE,
-    field: "created_at",
+    field: 'created_at',
     defaultValue: Sequelize.NOW,
   },
   updated_at: {
     allowNull: false,
     type: DataTypes.DATE,
-    field: "updated_at",
+    field: 'updated_at',
     defaultValue: Sequelize.NOW,
   },
 };
@@ -70,10 +70,10 @@ const EmpresaSchema = {
 class Empresa extends Model {
   // LLamaré métodos estáticos para no crear el objeto y funcionará para definir asociaciones
   static assocciate(models) {
-    this.hasMany(models.Contratos, { as: "contratos", foreignKey: "id_emp" });
+    this.hasMany(models.Contratos, { as: 'contratos', foreignKey: 'id_emp' });
     this.hasMany(models.PersonalEmp, {
-      as: "personal_emp",
-      foreignKey: "id_emp",
+      as: 'personal_emp',
+      foreignKey: 'id_emp',
     });
   }
 
@@ -82,7 +82,7 @@ class Empresa extends Model {
     return {
       sequelize,
       tableName: EMPRESAS_TABLE,
-      modelName: "Empresa",
+      modelName: 'Empresa',
       timestamps: false,
     };
   }

@@ -1,4 +1,4 @@
-const Joi = require("joi");
+const Joi = require('joi');
 
 // const id = Joi.string().uuid(); //No se le coloca como requerido ya que lo autogenero
 const id_contrato = Joi.string().alphanum().min(7).max(7);
@@ -22,6 +22,8 @@ const createContratoSchema = Joi.object({
   fecha_fin: fecha_fin,
   flag_vigente: flag_vigente,
   fecha_extendida: fecha_extendida,
+  factura: factura,
+  observac: observac,
   estatus: estatus,
 });
 

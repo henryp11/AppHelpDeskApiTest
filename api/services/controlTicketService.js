@@ -1,6 +1,6 @@
-const boom = require("@hapi/boom");
-const { Op } = require("sequelize"); //Para usar operadores de consultas directo desde sequelize
-const { models } = require("../libs/sequelize"); //Usando ORM PARA USAR MODELOS
+const boom = require('@hapi/boom');
+const { Op } = require('sequelize'); //Para usar operadores de consultas directo desde sequelize
+const { models } = require('../libs/sequelize'); //Usando ORM PARA USAR MODELOS
 
 class ControlTicketServices {
   async find(query) {
@@ -8,9 +8,9 @@ class ControlTicketServices {
     const options = {
       where: {},
       order: [
-        ["id_ticket", "ASC"],
-        ["id_solicitud", "ASC"],
-        ["id_control", "ASC"],
+        ['id_ticket', 'ASC'],
+        ['id_solicitud', 'ASC'],
+        ['id_control', 'ASC'],
       ],
     }; //Para añadir opciones al método del ORM en este caso limit y offset
     //Valido si se envián los query params y los añado al objeto
@@ -27,7 +27,22 @@ class ControlTicketServices {
   async filterId(id) {
     const answer = await models.ControlTickets.findByPk(id);
     if (!answer) {
-      throw boom.notFound("Control no encontrado");
+      throw boom.notFound('Control no encontrado');
+    }
+    return answer;
+  }
+
+  async filterByTicketSolicitud(id, id_solicitud) {
+    const options = {
+      where: {
+        id_ticket: id,
+        id_solicitud: id_solicitud,
+      },
+    };
+
+    const answer = await models.ControlTickets.findAll(options);
+    if (!answer) {
+      throw boom.notFound('Ticket no encontrado');
     }
     return answer;
   }
@@ -51,13 +66,13 @@ class ControlTicketServices {
       id_ticket: ticketId,
       id_solicitud: solicitudId,
     });
-    return { message: "Registro creado con éxito", newRegister };
+    return { message: 'Registro creado con éxito', newRegister };
   }
 
   async update(id, changes) {
     const findReg = await this.filterId(id);
     const dataUpdate = await findReg.update(changes);
-    return { message: "Datos actualizados", dataUpdate };
+    return { message: 'Datos actualizados', dataUpdate };
   }
 
   async delete(id) {

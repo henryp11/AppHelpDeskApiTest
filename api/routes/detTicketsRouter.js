@@ -1,24 +1,24 @@
-const express = require("express");
-const passport = require("passport");
-const DetTicketServices = require("../services/detTicketService"); //Import clase de los servicios
-const validatorHandler = require("../middlewares/validatorHandler");
-const { checkAdminRole, checkRoles } = require("../middlewares/authHandler"); //Traigo el validador de permisos
+const express = require('express');
+const passport = require('passport');
+const DetTicketServices = require('../services/detTicketService'); //Import clase de los servicios
+const validatorHandler = require('../middlewares/validatorHandler');
+const { checkAdminRole, checkRoles } = require('../middlewares/authHandler'); //Traigo el validador de permisos
 const {
   createSolicitudSchema,
   updateSolicitudSchema,
   getSolicitudSchema,
   querySolicitudSchema,
-} = require("../schemas/detTicketsSchema");
+} = require('../schemas/detTicketsSchema');
 
 const router = express.Router();
 const service = new DetTicketServices(); //Creo el objeto de servicios
 
 //Get para todas las empresas con paginación
 router.get(
-  "/",
-  passport.authenticate("jwt", { session: false }),
+  '/',
+  passport.authenticate('jwt', { session: false }),
   async (req, res, next) => {
-    validatorHandler(querySolicitudSchema, "query");
+    validatorHandler(querySolicitudSchema, 'query');
     try {
       const data = await service.find(req.query);
       res.json(data);
@@ -30,11 +30,11 @@ router.get(
 
 //Creando Post
 router.post(
-  "/:id_ticket",
-  passport.authenticate("jwt", { session: false }),
+  '/:id_ticket',
+  passport.authenticate('jwt', { session: false }),
   //Una vez validad la capa de autenticación, obtiene el payload para usar el middleware de permisos
-  validatorHandler(getSolicitudSchema, "params"),
-  validatorHandler(createSolicitudSchema, "body"),
+  validatorHandler(getSolicitudSchema, 'params'),
+  validatorHandler(createSolicitudSchema, 'body'),
   async (req, res, next) => {
     try {
       const { id_ticket } = req.params;
@@ -50,8 +50,9 @@ router.post(
 
 //Get por ticket con todas sus solicitudes
 router.get(
-  "/:id_ticket",
-  validatorHandler(getSolicitudSchema, "params"), //Mando el esquema y las propidades de busqueda en este caso params
+  '/:id_ticket',
+  passport.authenticate('jwt', { session: false }),
+  validatorHandler(getSolicitudSchema, 'params'), //Mando el esquema y las propidades de busqueda en este caso params
   async (req, res, next) => {
     try {
       const { id_ticket } = req.params;
@@ -64,8 +65,9 @@ router.get(
 );
 //Get solo solicitud específica
 router.get(
-  "/:id_solicitud",
-  validatorHandler(getSolicitudSchema, "params"), //Mando el esquema y las propidades de busqueda en este caso params
+  '/:id_solicitud',
+  passport.authenticate('jwt', { session: false }),
+  validatorHandler(getSolicitudSchema, 'params'), //Mando el esquema y las propidades de busqueda en este caso params
   async (req, res, next) => {
     try {
       const { id_solicitud } = req.params;
@@ -77,16 +79,17 @@ router.get(
   }
 );
 
-//REVISAR FUNCION PARA ACTUALZIAR POR BUSQUEDA DENTRO DEL TICKET
+//REVISAR FUNCION PARA ACTUALIZAR POR BUSQUEDA DENTRO DEL TICKET
 router.patch(
-  "/:id_solicitud",
-  validatorHandler(getSolicitudSchema, "params"), //Primero valido el id
-  validatorHandler(updateSolicitudSchema, "body"), //luego el body
+  '/:id_ticket/:id_solicitud',
+  passport.authenticate('jwt', { session: false }),
+  validatorHandler(getSolicitudSchema, 'params'), //Primero valido el id
+  validatorHandler(updateSolicitudSchema, 'body'), //luego el body
   async (req, res, next) => {
     try {
-      const { id_solicitud } = req.params;
+      const { id_ticket, id_solicitud } = req.params;
       const body = req.body;
-      const regUpdate = await service.update(id_solicitud, body);
+      const regUpdate = await service.update(id_ticket, id_solicitud, body);
       res.json(regUpdate);
     } catch (error) {
       next(error);
@@ -95,8 +98,9 @@ router.patch(
 );
 
 router.delete(
-  "/:id_solicitud",
-  validatorHandler(getSolicitudSchema, "params"), //Primero valido el id
+  '/:id_solicitud',
+  passport.authenticate('jwt', { session: false }),
+  validatorHandler(getSolicitudSchema, 'params'), //Primero valido el id
   async (req, res, next) => {
     try {
       const { id_solicitud } = req.params;

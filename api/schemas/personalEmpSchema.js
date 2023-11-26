@@ -1,4 +1,4 @@
-const Joi = require("joi");
+const Joi = require('joi');
 
 const id_per = Joi.string()
   .pattern(/^[0-9]+$/)
@@ -25,7 +25,7 @@ const createPersonalEmpSchema = Joi.object({
   telf2: telf2,
   cargo: cargo,
   depto: depto,
-  correo: correo.required(),
+  correo: correo,
   id_user: id_user,
   estatus: estatus,
 });
@@ -38,6 +38,7 @@ const updatePersonalEmpSchema = Joi.object({
   cargo: cargo,
   depto: depto,
   correo: correo,
+  id_user: id_user,
   estatus: estatus,
 });
 

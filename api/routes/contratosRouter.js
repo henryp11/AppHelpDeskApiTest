@@ -1,27 +1,36 @@
-const express = require("express");
-const ContratosServices = require("../services/contratosService"); //Import clase de los servicios
-const validatorHandler = require("../middlewares/validatorHandler");
+const express = require('express');
+const passport = require('passport');
+const ContratosServices = require('../services/contratosService'); //Import clase de los servicios
+const validatorHandler = require('../middlewares/validatorHandler');
+const { checkAdminRole } = require('../middlewares/authHandler'); //Traigo el validador de permisos
 const {
   createContratoSchema,
   updateContratoSchema,
   getContratoSchema,
-} = require("../schemas/contratosSchema");
+} = require('../schemas/contratosSchema');
 
 const router = express.Router();
 const service = new ContratosServices(); //Creo el objeto de servicios
 
-router.get("/", async (req, res, next) => {
-  try {
-    const data = await service.find();
-    res.json(data);
-  } catch (error) {
-    next(error);
+router.get(
+  '/',
+  passport.authenticate('jwt', { session: false }),
+  checkAdminRole,
+  async (req, res, next) => {
+    try {
+      const data = await service.find();
+      res.json(data);
+    } catch (error) {
+      next(error);
+    }
   }
-});
+);
 
 router.post(
-  "/",
-  validatorHandler(createContratoSchema, "body"),
+  '/',
+  passport.authenticate('jwt', { session: false }),
+  checkAdminRole,
+  validatorHandler(createContratoSchema, 'body'),
   async (req, res, next) => {
     try {
       const body = req.body;
@@ -34,8 +43,10 @@ router.post(
 );
 
 router.get(
-  "/:id_contrato",
-  validatorHandler(getContratoSchema, "params"), //Mando el esquema y las propidades de busqueda en este caso params
+  '/:id_contrato',
+  passport.authenticate('jwt', { session: false }),
+  checkAdminRole,
+  validatorHandler(getContratoSchema, 'params'), //Mando el esquema y las propidades de busqueda en este caso params
   async (req, res, next) => {
     try {
       const { id_contrato } = req.params;
@@ -48,9 +59,11 @@ router.get(
 );
 
 router.patch(
-  "/:id_contrato",
-  validatorHandler(getContratoSchema, "params"), //Primero valido el id
-  validatorHandler(updateContratoSchema, "body"), //luego el body
+  '/:id_contrato',
+  passport.authenticate('jwt', { session: false }),
+  checkAdminRole,
+  validatorHandler(getContratoSchema, 'params'), //Primero valido el id
+  validatorHandler(updateContratoSchema, 'body'), //luego el body
   async (req, res, next) => {
     try {
       const { id_contrato } = req.params;
@@ -64,8 +77,10 @@ router.patch(
 );
 
 router.delete(
-  "/:id_contrato",
-  validatorHandler(getContratoSchema, "params"),
+  '/:id_contrato',
+  passport.authenticate('jwt', { session: false }),
+  checkAdminRole,
+  validatorHandler(getContratoSchema, 'params'),
   async (req, res, next) => {
     try {
       const { id_contrato } = req.params;

@@ -1,4 +1,4 @@
-const Joi = require("joi");
+const Joi = require('joi');
 
 const id_agente = Joi.string().alphanum().min(4).max(4);
 const cedula = Joi.string()
@@ -12,8 +12,10 @@ const fecha_ingreso = Joi.date();
 const fecha_salida = Joi.date();
 const cargo = Joi.string().max(50);
 const horario = Joi.object({
-  id_horario: Joi.number().integer(),
-  nombre_horario: Joi.string(),
+  horario: Joi.string(),
+  dias: Joi.string(),
+  hora_inicio: Joi.string(),
+  hora_fin: Joi.string(),
 });
 const nivel_atencion = Joi.string().max(2);
 const estatus = Joi.boolean();

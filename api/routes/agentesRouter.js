@@ -1,27 +1,36 @@
-const express = require("express");
-const AgentesServices = require("../services/agentesService"); //Import clase de los servicios
-const validatorHandler = require("../middlewares/validatorHandler");
+const express = require('express');
+const passport = require('passport');
+const AgentesServices = require('../services/agentesService'); //Import clase de los servicios
+const validatorHandler = require('../middlewares/validatorHandler');
+const { checkAdminRole } = require('../middlewares/authHandler'); //Traigo el validador de permisos
 const {
   createAgenteSchema,
   updateAgenteSchema,
   getAgenteSchema,
-} = require("../schemas/agentesSchema");
+} = require('../schemas/agentesSchema');
 
 const router = express.Router();
 const service = new AgentesServices(); //Creo el objeto de servicios
 
-router.get("/", async (req, res, next) => {
-  try {
-    const data = await service.find();
-    res.json(data);
-  } catch (error) {
-    next(error);
+router.get(
+  '/',
+  passport.authenticate('jwt', { session: false }),
+  checkAdminRole,
+  async (req, res, next) => {
+    try {
+      const data = await service.find();
+      res.json(data);
+    } catch (error) {
+      next(error);
+    }
   }
-});
+);
 
 router.post(
-  "/",
-  validatorHandler(createAgenteSchema, "body"),
+  '/',
+  passport.authenticate('jwt', { session: false }),
+  checkAdminRole,
+  validatorHandler(createAgenteSchema, 'body'),
   async (req, res, next) => {
     try {
       const body = req.body;
@@ -34,8 +43,10 @@ router.post(
 );
 
 router.get(
-  "/:id_agente",
-  validatorHandler(getAgenteSchema, "params"), //Mando el esquema y las propidades de busqueda en este caso params
+  '/:id_agente',
+  passport.authenticate('jwt', { session: false }),
+  checkAdminRole,
+  validatorHandler(getAgenteSchema, 'params'), //Mando el esquema y las propidades de busqueda en este caso params
   async (req, res, next) => {
     try {
       const { id_agente } = req.params;
@@ -48,9 +59,11 @@ router.get(
 );
 
 router.patch(
-  "/:id_agente",
-  validatorHandler(getAgenteSchema, "params"), //Primero valido el id
-  validatorHandler(updateAgenteSchema, "body"), //luego el body
+  '/:id_agente',
+  passport.authenticate('jwt', { session: false }),
+  checkAdminRole,
+  validatorHandler(getAgenteSchema, 'params'), //Primero valido el id
+  validatorHandler(updateAgenteSchema, 'body'), //luego el body
   async (req, res, next) => {
     try {
       const { id_agente } = req.params;
@@ -64,8 +77,10 @@ router.patch(
 );
 
 router.delete(
-  "/:id_agente",
-  validatorHandler(getAgenteSchema, "params"),
+  '/:id_agente',
+  passport.authenticate('jwt', { session: false }),
+  checkAdminRole,
+  validatorHandler(getAgenteSchema, 'params'),
   async (req, res, next) => {
     try {
       const { id_agente } = req.params;

@@ -1,4 +1,4 @@
-const Joi = require("joi");
+const Joi = require('joi');
 
 // const id = Joi.string().uuid(); //No se le coloca como requerido ya que lo autogenero
 const id_user = Joi.number();
@@ -30,8 +30,13 @@ const getUserSchema = Joi.object({
   id_user: id_user.required(),
 });
 
+const mailUserSchema = Joi.object({
+  mail: mail,
+});
+
 module.exports = {
   createUserSchema,
   updateUserSchema,
   getUserSchema,
+  mailUserSchema,
 };

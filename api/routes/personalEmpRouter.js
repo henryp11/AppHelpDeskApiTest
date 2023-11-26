@@ -1,25 +1,26 @@
-const express = require("express");
-const passport = require("passport");
-const PersonalEmpServices = require("../services/personalEmpService"); //Import clase de los servicios
-const validatorHandler = require("../middlewares/validatorHandler");
-const { checkAdminRole, checkRoles } = require("../middlewares/authHandler"); //Traigo el validador de permisos
+const express = require('express');
+const passport = require('passport');
+const PersonalEmpServices = require('../services/personalEmpService'); //Import clase de los servicios
+const validatorHandler = require('../middlewares/validatorHandler');
+const { checkRoles } = require('../middlewares/authHandler'); //Traigo el validador de permisos
 const {
   createPersonalEmpSchema,
   updatePersonalEmpSchema,
   getPersonalEmpSchema,
   queryPersonalEmpSchema,
-} = require("../schemas/personalEmpSchema");
+} = require('../schemas/personalEmpSchema');
 
 const router = express.Router();
 const service = new PersonalEmpServices(); //Creo el objeto de servicios
 
-//Get para todas las empresas con paginación
+//Get para el personal de las empresas con paginación
+//Dependiendo del rol del usuario mostrará de todas las empresas (admin) o solo de la empresa que le corresponde (supervisor)
 router.get(
-  "/",
-  passport.authenticate("jwt", { session: false }),
-  checkRoles("admin", "supervisor"),
+  '/',
+  passport.authenticate('jwt', { session: false }),
+  checkRoles('admin', 'supervisor'),
+  // validatorHandler(queryPersonalEmpSchema, 'query'),
   async (req, res, next) => {
-    validatorHandler(queryPersonalEmpSchema, "query");
     try {
       const data = await service.find(req.query);
       res.json(data);
@@ -29,17 +30,20 @@ router.get(
   }
 );
 
-//Creando Post
+//Creando Personal. Depende del perfil se asignará o no el id_user,
 router.post(
-  "/",
-  passport.authenticate("jwt", { session: false }),
+  '/',
+  passport.authenticate('jwt', { session: false }),
+  checkRoles('admin', 'supervisor', 'cliente'),
   //Una vez validad la capa de autenticación, obtiene el payload para usar el middleware de permisos
-  validatorHandler(createPersonalEmpSchema, "body"),
+  validatorHandler(createPersonalEmpSchema, 'body'),
   async (req, res, next) => {
+    console.log(req);
     try {
       const body = req.body;
-      const user = req.user;
-      const newReg = await service.create(body, user.sub);
+      console.log({ bodyRouterPersonal: body });
+      const user = req.user; //el objeto user viene de req del payload de JWT
+      const newReg = await service.create(body, user.sub, user.perfil);
       res.status(201).json(newReg);
     } catch (error) {
       next(error);
@@ -49,8 +53,10 @@ router.post(
 
 //Get para empresa por id
 router.get(
-  "/:id_per",
-  validatorHandler(getPersonalEmpSchema, "params"), //Mando el esquema y las propidades de busqueda en este caso params
+  '/:id_per',
+  passport.authenticate('jwt', { session: false }),
+  checkRoles('admin', 'supervisor', 'cliente'),
+  validatorHandler(getPersonalEmpSchema, 'params'), //Mando el esquema y las propidades de busqueda en este caso params
   async (req, res, next) => {
     try {
       const { id_per } = req.params;
@@ -63,9 +69,11 @@ router.get(
 );
 
 router.patch(
-  "/:id_per",
-  validatorHandler(getPersonalEmpSchema, "params"), //Primero valido el id
-  validatorHandler(updatePersonalEmpSchema, "body"), //luego el body
+  '/:id_per',
+  passport.authenticate('jwt', { session: false }),
+  checkRoles('admin', 'supervisor', 'cliente'),
+  validatorHandler(getPersonalEmpSchema, 'params'), //Primero valido el id
+  validatorHandler(updatePersonalEmpSchema, 'body'), //luego el body
   async (req, res, next) => {
     try {
       const { id_per } = req.params;
@@ -79,8 +87,10 @@ router.patch(
 );
 
 router.delete(
-  "/:id_per",
-  validatorHandler(getPersonalEmpSchema, "params"), //Primero valido el id
+  '/:id_per',
+  passport.authenticate('jwt', { session: false }),
+  checkRoles('admin', 'supervisor'),
+  validatorHandler(getPersonalEmpSchema, 'params'), //Primero valido el id
   async (req, res, next) => {
     try {
       const { id_per } = req.params;
