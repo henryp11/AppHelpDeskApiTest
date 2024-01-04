@@ -15,7 +15,7 @@ const detTicketsSchema = {
       key: 'id_ticket',
     },
     onUpdate: 'CASCADE',
-    onDelete: 'RESTRICT',
+    onDelete: 'DELETE',
   },
   id_solicitud: {
     allowNull: false,

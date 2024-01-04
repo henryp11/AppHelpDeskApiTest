@@ -1,4 +1,4 @@
-const Joi = require("joi");
+const Joi = require('joi');
 
 const id_control = Joi.number().integer();
 const id_ticket = Joi.number().integer();
@@ -8,7 +8,7 @@ const fecha_ini_atencion = Joi.date();
 const fecha_fin_atencion = Joi.date();
 const hora_ini_atencion = Joi.string().pattern(/^\d{2}:\d{2}:\d{2}$/);
 const hora_fin_atencion = Joi.string().pattern(/^\d{2}:\d{2}:\d{2}$/);
-const tiempo_calc = Joi.number().precision(6);
+const tiempo_calc = Joi.number().precision(2);
 const reasignado = Joi.boolean();
 const motivo_reasig = Joi.string().max(255);
 const nivel_complejidad = Joi.string().max(2);

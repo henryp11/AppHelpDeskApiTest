@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>services/authService.js - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="module-Servicios_Autorizacion-AuthService.html">AuthService</a><ul class='methods'><li data-type='method'><a href="module-Servicios_Autorizacion-AuthService.html#changePassword">changePassword</a></li><li data-type='method'><a href="module-Servicios_Autorizacion-AuthService.html#getUser">getUser</a></li><li data-type='method'><a href="module-Servicios_Autorizacion-AuthService.html#sendMail">sendMail</a></li><li data-type='method'><a href="module-Servicios_Autorizacion-AuthService.html#sendRecoveryMail">sendRecoveryMail</a></li><li data-type='method'><a href="module-Servicios_Autorizacion-AuthService.html#signToken">signToken</a></li></ul></li><li><a href="module-Servicios_Usuarios-UsersServices.html">UsersServices</a><ul class='methods'><li data-type='method'><a href="module-Servicios_Usuarios-UsersServices.html#create">create</a></li><li data-type='method'><a href="module-Servicios_Usuarios-UsersServices.html#delete">delete</a></li><li data-type='method'><a href="module-Servicios_Usuarios-UsersServices.html#filterId">filterId</a></li><li data-type='method'><a href="module-Servicios_Usuarios-UsersServices.html#find">find</a></li><li data-type='method'><a href="module-Servicios_Usuarios-UsersServices.html#findByEmail">findByEmail</a></li><li data-type='method'><a href="module-Servicios_Usuarios-UsersServices.html#update">update</a></li></ul></li></ul><h3>Modules</h3><ul><li><a href="module-Passport_JWT.html">Passport_JWT</a></li><li><a href="module-Passport_Local.html">Passport_Local</a></li><li><a href="module-Servicios_Autorizacion.html">Servicios_Autorizacion</a></li><li><a href="module-Servicios_Usuarios.html">Servicios_Usuarios</a></li></ul><h3>Global</h3><ul><li><a href="global.html#JwtStrategy">JwtStrategy</a></li><li><a href="global.html#LocalStrategy">LocalStrategy</a></li><li><a href="global.html#cors">cors</a></li><li><a href="global.html#express">express</a></li><li><a href="global.html#options">options</a></li><li><a href="global.html#passport">passport</a></li><li><a href="global.html#port">port</a></li><li><a href="global.html#whiteList">whiteList</a></li></ul>
+    
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">services/authService.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/** Servicios de autorización
+ * @module Servicios_Autorizacion
+ */
+
+/** Requiere la dependencia bcrypt para encriptar datos con hash*/
+const bcrypt = require('bcrypt');
+/** Requiere la dependencia boom para mostrar mensajes personalizados tanto de éxito como de errores */
+const boom = require('@hapi/boom');
+
+/**Requiere los servicios de usuarios: {@link module:Servicios_Usuarios} */
+const UserService = require('./usersService');
+/** Se crea el objeto de tipo UserService para usar las funciones de los servicios de usuario: {@link module:Servicios_Usuarios} */
+const service = new UserService();
+
+/** Requiere la dependencia jsonwebtoken para el so de tokens */
+const jwt = require('jsonwebtoken');
+
+/** Requiere la dependencia nodemailer para utilizar servidor de correos */
+const nodemailer = require('nodemailer');
+
+const { config } = require('../../config/config');
+
+/** Clase para ejecutar los diferentes servicios de Autenticación */
+class AuthService {
+  /**
+   * Servicio para obtener usuario por su email y password,
+   * utiliza la función findByEmail() desde: {@link module:Servicios_Usuarios~UsersServices#findByEmail}
+   * @param {string} email email/usuario para iniciar sesión
+   * @param {string} password contraseña
+   * @return {Object} Información de todo el usuario
+   */
+  async getUser(email, password) {
+    const user = await service.findByEmail(email);
+    if (!user) {
+      //Aqui no uso done porque es función de Strategy de la librería de passport
+      //done(boom.unauthorized(), false);
+      throw boom.unauthorized();
+    }
+    //Si pasa la validación procederé a comparar el password enviado con el hash encriptado en la DB
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      throw boom.unauthorized();
+    }
+    delete user.dataValues.password; //Quito password en la respuesta a enviar
+    return user;
+  }
+
+  /** Servicio para firmar token, realiza el firmado del token mediante la función sign() de JWT
+   * @see https://github.com/auth0/node-jsonwebtoken#jwtsignpayload-secretorprivatekey-options-callback
+   * @param {Object} user Datos del usuario registrado, de donde se extraerá su id_user, rol y estatus
+   * @return {Object} Información de todo el usuario
+   * @return {string} Token asignado al usuario
+   */
+  signToken(user) {
+    //Preparo información para armar token
+    //el "user" vendrá de la ruta de la petición
+    const payload = {
+      sub: user.id_user,
+      perfil: user.rol,
+      status: user.estatus,
+      //idCliente: user.personalEmp.id_per,
+      // idEmp: user.personalEmp.id_emp,
+      // vigenciaPlan: user.personalEmp.empresa.planMant,
+    };
+    const token = jwt.sign(payload, config.jwtSecret, { expiresIn: '1h' });
+
+    return { user, token };
+  }
+
+  //Función que se reutilizará para otro tipo de enviós de correo
+  /** Servicio para enviar correos usando el servicio de nodeMailer, se la invocará dependiendo del tipo de correo a enviar
+   * @see https://nodemailer.com/about/#example
+   * @param {Object} infoMail Información del correo a enviar
+   * @return {{string}} Objeto con un mensaje de confirmación
+   */
+  async sendMail(infoMail) {
+    //CreateTransport(), función de nodemail
+    const transporter = nodemailer.createTransport({
+      host: config.emailSenderHost,
+      secure: true,
+      port: config.emailSenderPortSSL,
+      auth: {
+        user: config.emailSender,
+        pass: config.emailSenderPass,
+      },
+    });
+
+    await transporter.sendMail(infoMail);
+    return { message: 'Correo enviado con éxito!!' };
+  }
+
+  /** Función para enviar correo de recuperación de contraseña, se genera un token temporal de 15 minutos para la recuperación
+   * @param {string} email Email a buscar con el servicio de usuarios findByEmail de la clase {@link module:Servicios_Usuarios~UsersServices#findByEmail}
+   * @return {response} Objeto con la respuesta del envío, es decir el correo de recuperación
+   */
+  async sendRecoveryMail(email) {
+    // Primero busco si el usuario existe previamente por su email
+    const user = await service.findByEmail(email);
+    console.log({ userUp: user });
+    if (!user) {
+      throw boom.unauthorized();
+    }
+    //Genero token para recuperar contraseña
+    const payload = { sub: user.id_user };
+    const token = jwt.sign(payload, config.jwtSecret, { expiresIn: '15min' });
+    //El link se enviará a la vista del frontend para que recupere la contraseña
+    //En el cual se enviará el token.
+    const link = `http://myfrontend.com/recovery?token=${token}`;
+
+    //Uso la función de update del modelo de usuario para actualizar
+    //el nuevo campo creado con la infomración de token y almacenarlo en la BD
+    await service.update(user.id_user, { recovery_token: token });
+
+    const mail = {
+      from: `${config.emailSender}`,
+      to: `${user.mail}`, //Si se encuentra el usuario extraigo su email del objeto
+      subject: 'Recuperación de Contraseña para app de Soporte Capacity-Soft',
+      html: `&lt;b>Para recuperar tu contraseña, ingresa al siguiente link &lt;br/> 
+      &lt;a href=${link}>${link}&lt;/a>&lt;/br>`,
+    };
+
+    const response = await this.sendMail(mail);
+    return response;
+  }
+
+  /** Función para cambiar la contraseña del usuario, se utiliza la función verify() de jwt para verificar el token firmado de la sesión activa.
+   * Se utilizan los métodos de la clase de servicios de usuario,
+   * filterId: {@link module:Servicios_Usuarios~UsersServices#filterId} y update: {@link module:Servicios_Usuarios~UsersServices#update}
+   * @see https://github.com/auth0/node-jsonwebtoken#jwtverifytoken-secretorpublickey-options-callback
+   * @param {string} token Token de la sesión activa para el cambio de contraseña
+   * @param {string} newPassword Nueva contraseña
+   * @return {Object} Objeto con la respuesta de confirmación de cambio de contraseña
+   */
+  async changePassword(token, newPassword) {
+    try {
+      // 1. Verifico el token firmado
+      const payload = jwt.verify(token, config.jwtSecret);
+      // 2. Como el token debe tener el id del usuario, procedo a buscarlo
+      const user = await service.filterId(payload.sub); //El sub del payload contien el id_user
+      // 3. Verifico si el token recuperado es el mismo que esta en la BD
+      if (user.recovery_token !== token) {
+        throw boom.unauthorized();
+      }
+      // 4. Aplico un hash a la nueva contraseña
+      const hash = await bcrypt.hash(newPassword, 10);
+      // 5. Procedo con el update, anulando el token de recuperación y cambiando el password
+      await service.update(user.id_user, {
+        recovery_token: null,
+        password: hash,
+      });
+      return { message: 'Contraseña actualizada con éxito' };
+    } catch (error) {
+      throw boom.unauthorized();
+    }
+  }
+}
+module.exports = AuthService;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Mon Oct 16 2023 20:28:00 GMT-0500 (hora estándar de Colombia) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+
+
+</body>
+</html>

@@ -3,7 +3,6 @@ const passport = require('passport');
 const validatorHandler = require('../middlewares/validatorHandler');
 const AutService = require('../services/authService');
 const service = new AutService();
-const { config } = require('../../config/config');
 const { mailUserSchema } = require('../schemas/usersSchema');
 
 const router = express.Router();

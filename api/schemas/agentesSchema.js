@@ -6,10 +6,13 @@ const cedula = Joi.string()
   .min(10)
   .max(10);
 const nombre = Joi.string().max(50);
-const fecha_nacimiento = Joi.date();
+// const fecha_nacimiento = Joi.date();
+const fecha_nacimiento = Joi.any();
 const sexo = Joi.string().max(1);
-const fecha_ingreso = Joi.date();
-const fecha_salida = Joi.date();
+// const fecha_ingreso = Joi.date();
+const fecha_ingreso = Joi.any();
+// const fecha_salida = Joi.date();
+const fecha_salida = Joi.any();
 const cargo = Joi.string().max(50);
 const horario = Joi.object({
   horario: Joi.string(),
@@ -19,6 +22,7 @@ const horario = Joi.object({
 });
 const nivel_atencion = Joi.string().max(2);
 const estatus = Joi.boolean();
+const id_user = Joi.number().integer();
 //Para Paginación
 const offset = Joi.number().integer();
 const limit = Joi.number().integer();
@@ -34,6 +38,7 @@ const createAgenteSchema = Joi.object({
   horario: horario,
   nivel_atencion: nivel_atencion,
   estatus: estatus,
+  id_user: id_user,
 });
 
 const updateAgenteSchema = Joi.object({
@@ -48,6 +53,7 @@ const updateAgenteSchema = Joi.object({
   horario: horario,
   nivel_atencion: nivel_atencion,
   estatus: estatus,
+  id_user: id_user,
 });
 
 const getAgenteSchema = Joi.object({

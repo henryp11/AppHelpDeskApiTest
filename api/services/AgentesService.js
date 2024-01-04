@@ -12,8 +12,17 @@ class AgentesServices {
    * @see https://sequelize.org/docs/v6/core-concepts/model-querying-finders/#findall
    * @return {Array<Object>} Devuelve un Array de objetos, con todos los datos de cada agente desde el modelo de sequelize
    */
-  async find() {
-    const answer = await models.Agentes.findAll();
+  async find(query) {
+    const { cedagent } = query;
+
+    const options = {
+      where: {},
+    };
+    if (cedagent) {
+      options.where.cedula = cedagent;
+    }
+
+    const answer = await models.Agentes.findAll(options);
     return answer;
   }
 

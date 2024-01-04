@@ -17,8 +17,8 @@ const service = new DetTicketServices(); //Creo el objeto de servicios
 router.get(
   '/',
   passport.authenticate('jwt', { session: false }),
+  validatorHandler(querySolicitudSchema, 'query'),
   async (req, res, next) => {
-    validatorHandler(querySolicitudSchema, 'query');
     try {
       const data = await service.find(req.query);
       res.json(data);
@@ -56,22 +56,7 @@ router.get(
   async (req, res, next) => {
     try {
       const { id_ticket } = req.params;
-      const regFind = await service.filterId(id_ticket);
-      res.json(regFind);
-    } catch (error) {
-      next(error);
-    }
-  }
-);
-//Get solo solicitud específica
-router.get(
-  '/:id_solicitud',
-  passport.authenticate('jwt', { session: false }),
-  validatorHandler(getSolicitudSchema, 'params'), //Mando el esquema y las propidades de busqueda en este caso params
-  async (req, res, next) => {
-    try {
-      const { id_solicitud } = req.params;
-      const regFind = await service.filterId(id_solicitud);
+      const regFind = await service.filterAllSolByTicket(id_ticket);
       res.json(regFind);
     } catch (error) {
       next(error);
@@ -79,7 +64,40 @@ router.get(
   }
 );
 
-//REVISAR FUNCION PARA ACTUALIZAR POR BUSQUEDA DENTRO DEL TICKET
+// router.get(
+//   '/solicitud/:id_solicitud',
+//   passport.authenticate('jwt', { session: false }),
+//   validatorHandler(getSolicitudSchema, 'params'), //Mando el esquema y las propidades de busqueda en este caso params
+//   async (req, res, next) => {
+//     try {
+//       const { id_solicitud } = req.params;
+//       const regFind = await service.filterId(id_solicitud);
+//       res.json(regFind);
+//     } catch (error) {
+//       next(error);
+//     }
+//   }
+// );
+//Get solo ticket y solicitud específicos
+router.get(
+  '/:id_ticket/:id_solicitud',
+  passport.authenticate('jwt', { session: false }),
+  validatorHandler(getSolicitudSchema, 'params'), //Primero valido el id
+  async (req, res, next) => {
+    try {
+      const { id_ticket, id_solicitud } = req.params;
+      const regFind = await service.filterIdTicketIdSolicitud(
+        id_ticket,
+        id_solicitud
+      );
+      res.json(regFind);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+//ACTUALIZAR POR BUSQUEDA DENTRO DEL TICKET
 router.patch(
   '/:id_ticket/:id_solicitud',
   passport.authenticate('jwt', { session: false }),

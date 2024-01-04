@@ -66,17 +66,17 @@ const mtrTicketsSchema = {
       'Fecha-hora real en que se finaliza la atención de todas las solicitudes en el ticket',
   },
   tiempo_calc_sop: {
-    type: DataTypes.DECIMAL(9, 6),
+    type: DataTypes.DECIMAL(10, 2),
     comment:
       'Tiempo EN HORAS transcurrido entre el inicio de la atención y el final de la atención de todo el contenido del ticket',
   },
   tiempo_diferencial: {
-    type: DataTypes.DECIMAL(9, 6),
+    type: DataTypes.DECIMAL(10, 2),
     comment:
       'Tiempo que considere el agente de soporte que deba sumar o restar al tiempo calculado por cualquier motivo que pudo presentarse en el proceso de atención del ticket',
   },
   tiempo_real_sop: {
-    type: DataTypes.DECIMAL(9, 6),
+    type: DataTypes.DECIMAL(10, 2),
     comment:
       'Tiempo real de soporte siendo la diferencia entre el tiempo calculado y el tiempo diferencial',
   },
@@ -102,10 +102,10 @@ const mtrTicketsSchema = {
 };
 
 class MtrTickets extends Model {
+  // LLamaré métodos estáticos para no crear el objeto y funcionará para definir asociaciones
   static assocciate(models) {
     this.belongsTo(models.PersonalEmp, {
       as: 'personal_emp',
-      // foreignKey: ["id_cliente", "id_emp"],
       foreignKey: 'id_cliente',
     });
     this.hasMany(models.DetTickets, {
@@ -115,6 +115,7 @@ class MtrTickets extends Model {
   }
 
   static config(sequelize) {
+    //Se requiere una conexión en este caso desde sequelize
     return {
       sequelize,
       tableName: MTR_TICKETS_TABLE,

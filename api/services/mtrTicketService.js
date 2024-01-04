@@ -5,6 +5,7 @@ const { models } = require('../libs/sequelize'); //Usando ORM PARA USAR MODELOS
 class MtrTicketServices {
   async find(query) {
     const { limit, offset, rol, idemp, idclient, tracking } = query;
+    const estatusEspecifico = ['solicitado', 'proceso', 'detenido'];
     const options = {
       where: {},
       order: [['id_ticket', 'DESC']],
@@ -20,32 +21,27 @@ class MtrTicketServices {
     }
 
     //Valido el rol si es distinto de admin, para que el SQL solo muestre los tickets de la empresa a la que pertenece el usuario
-    // Si es admin por el contrario se debe mostrat todos los tickets para todas las empresas
+    // Si es admin por el contrario se debe mostrar todos los tickets para todas las empresas
     if (rol && idemp) {
       if (rol === 'supervisor') {
         options.where.id_emp = idemp;
-        if (tracking === true) {
+        if (tracking === 'true') {
           //PARA TRACKING QUITO LOS ANULADOS Y FINALIZADOS.
           options.where.id_emp = idemp;
-          options.where.estatus = [
-            'solicitado',
-            'asignado',
-            'proceso',
-            'detenido',
-          ];
+          options.where.estatus = estatusEspecifico;
         }
       } else if (rol === 'cliente') {
         options.where.id_emp = idemp;
         options.where.id_cliente = idclient;
-        if (tracking === true) {
+        if (tracking === 'true') {
           options.where.id_emp = idemp;
           options.where.id_cliente = idclient;
-          options.where.estatus = [
-            'solicitado',
-            'asignado',
-            'proceso',
-            'detenido',
-          ];
+          options.where.estatus = estatusEspecifico;
+        }
+      } else if (rol === 'agente') {
+        // options.where.id_cliente = idclient;
+        if (tracking === 'true') {
+          options.where.estatus = estatusEspecifico;
         }
       }
     }

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>services/usersService.js - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="module-Servicios_Autorizacion-AuthService.html">AuthService</a><ul class='methods'><li data-type='method'><a href="module-Servicios_Autorizacion-AuthService.html#changePassword">changePassword</a></li><li data-type='method'><a href="module-Servicios_Autorizacion-AuthService.html#getUser">getUser</a></li><li data-type='method'><a href="module-Servicios_Autorizacion-AuthService.html#sendMail">sendMail</a></li><li data-type='method'><a href="module-Servicios_Autorizacion-AuthService.html#sendRecoveryMail">sendRecoveryMail</a></li><li data-type='method'><a href="module-Servicios_Autorizacion-AuthService.html#signToken">signToken</a></li></ul></li><li><a href="module-Servicios_Usuarios-UsersServices.html">UsersServices</a><ul class='methods'><li data-type='method'><a href="module-Servicios_Usuarios-UsersServices.html#create">create</a></li><li data-type='method'><a href="module-Servicios_Usuarios-UsersServices.html#delete">delete</a></li><li data-type='method'><a href="module-Servicios_Usuarios-UsersServices.html#filterId">filterId</a></li><li data-type='method'><a href="module-Servicios_Usuarios-UsersServices.html#find">find</a></li><li data-type='method'><a href="module-Servicios_Usuarios-UsersServices.html#findByEmail">findByEmail</a></li><li data-type='method'><a href="module-Servicios_Usuarios-UsersServices.html#update">update</a></li></ul></li></ul><h3>Modules</h3><ul><li><a href="module-Passport_JWT.html">Passport_JWT</a></li><li><a href="module-Passport_Local.html">Passport_Local</a></li><li><a href="module-Servicios_Autorizacion.html">Servicios_Autorizacion</a></li><li><a href="module-Servicios_Usuarios.html">Servicios_Usuarios</a></li></ul><h3>Global</h3><ul><li><a href="global.html#JwtStrategy">JwtStrategy</a></li><li><a href="global.html#LocalStrategy">LocalStrategy</a></li><li><a href="global.html#cors">cors</a></li><li><a href="global.html#express">express</a></li><li><a href="global.html#options">options</a></li><li><a href="global.html#passport">passport</a></li><li><a href="global.html#port">port</a></li><li><a href="global.html#whiteList">whiteList</a></li></ul>
+    
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">services/usersService.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/** Servicios de usuarios
+ * @module Servicios_Usuarios
+ */
+/** Requiere la dependencia boom para mostrar mensajes personalizados tanto de éxito como de errores */
+const boom = require('@hapi/boom');
+/** Requiere la dependencia bcrypt para encriptar datos con hash*/
+const bcrypt = require('bcrypt');
+//Se debe usar la llamada reservada por sequelize "models" desde la libreria de conexión
+const { models } = require('../libs/sequelize');
+
+/** Clase para ejectuar los diferentes servicios de Usuarios */
+class UsersServices {
+  /** Listar todos los usuarios, mediante la función findAll() de sequelize 
+   * @see https://sequelize.org/docs/v6/core-concepts/model-querying-finders/#findall
+   * @return {Array&lt;Object>} Devuelve un Array de objetos, con todos los datos de cada usuario desde el modelo de sequelize
+   
+  */
+  async find() {
+    const answer = await models.Users.findAll();
+    //const answer = await models.Contratos.findAll({ include: "empresa" });
+    return answer;
+  }
+
+  /** Crear un nuevo usuario, se utiliza a bcrypt para aplicar un hash a la contraseña y la función create() de sequelize
+   * @see https://sequelize.org/docs/v6/core-concepts/model-querying-basics/#simple-insert-queries
+   * @param {Object} data Objeto con toda la información del usuario a crear
+   * @return {Object} Devuelve un mensaje de confirmación con el objeto creado
+   */
+  async create(data) {
+    const hash = await bcrypt.hash(data.password, 10); //Campo del objeto a encriptar
+    const newRegister = await models.Users.create({
+      ...data,
+      password: hash,
+    });
+    // delete newRegister.password; //Eliminar normalmente un campo con JS
+    delete newRegister.dataValues.password; //Eliminar el campo para Sequelize depende del ORM
+    return { message: 'Registro creado con éxito', newRegister };
+  }
+
+  /** Busqueda por el id de usuario, mediante la función findByPk() de sequelize
+   * @see https://sequelize.org/docs/v6/core-concepts/model-querying-finders/#findbypk
+   * @param {string} id Id del usuario a buscar
+   * @return {Object} Devuelve el objeto con los datos del usuario encontrado
+   */
+  async filterId(id) {
+    //Traigo las asociaciones del usuario, en dos niveles de anidamiento
+    const answer = await models.Users.findByPk(id, {
+      include: [{ association: 'personalEmp', include: 'empresa' }],
+    });
+    if (!answer) {
+      throw boom.notFound('Usuario no encontrado :(');
+    }
+    return answer;
+  }
+
+  //Buscar usuarios por email (se pone el parámetro "mail" porque así se llama la columna en la BD),
+  /** Servicio para buscar a los usuarios por su email, utiliza la función findOne() de sequelize
+   * @see https://sequelize.org/docs/v6/core-concepts/model-querying-finders/#findone
+   * @param {string} mail Correo a buscar en BD
+   * @return {string} Si encontró al usuario retornará su id_user
+   */
+  async findByEmail(mail) {
+    //con findOne indico que traiga el primero que encuentre
+    const answer = await models.Users.findOne({ where: { mail } });
+    //Una vez encontrado el registro lo vuelvo a buscar por su id_user que me devuelva
+    //las asociaciones anidadas con los datos del cliente y la empresa asociada
+    if (!answer) {
+      throw boom.unauthorized();
+    }
+    const answerInclude = await this.filterId(answer.id_user);
+    return answerInclude;
+  }
+
+  /** Actualiza información del usuario, mediante la función update() de sequelize
+   * @see https://sequelize.org/docs/v6/core-concepts/model-querying-basics/#simple-update-queries
+   * @param {string} id Id del usuario a buscar
+   * @return {Object} Devuelve el objeto con los datos del usuario encontrado
+   */
+  async update(id, changes) {
+    const findReg = await this.filterId(id);
+    const dataUpdate = await findReg.update(changes); //Uso directamente la variable de update del modelo
+    return { message: 'Datos actualizados', dataUpdate };
+  }
+
+  /** Eliminar un usuario, mediante la función destroy() de sequelize
+   * @see https://sequelize.org/docs/v6/core-concepts/model-querying-basics/#simple-delete-queries
+   * @param {string} id Id del usuario a eliminar
+   * @return {Object} Devuelve mensaje con el id del usuario eliminado
+   */
+  async delete(id) {
+    const findReg = await this.filterId(id);
+    await findReg.destroy();
+    return { message: `Usuario ${id} eliminado!` };
+  }
+}
+
+module.exports = UsersServices;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Mon Oct 16 2023 20:28:00 GMT-0500 (hora estándar de Colombia) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+
+
+</body>
+</html>

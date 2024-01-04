@@ -18,6 +18,9 @@ const estatus = Joi.string().max(11);
 //Para Paginación
 const offset = Joi.number().integer();
 const limit = Joi.number().integer();
+const tracking = Joi.any();
+const assigment = Joi.any();
+const agent = Joi.any();
 
 const createSolicitudSchema = Joi.object({
   id_ticket: id_ticket,
@@ -57,6 +60,9 @@ const getSolicitudSchema = Joi.object({
 const querySolicitudSchema = Joi.object({
   limit,
   offset,
+  tracking,
+  assigment,
+  agent,
 });
 
 module.exports = {

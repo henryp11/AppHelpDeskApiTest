@@ -1,7 +1,8 @@
-const { Model, DataTypes, Sequelize } = require("sequelize");
+const { Model, DataTypes, Sequelize } = require('sequelize');
 
 //Empezar a definir el nombre de la tabla con toda la estructura, nombre de la tabla en mayúsculas
-const AGENTES_TABLE = "agentes_sop";
+const AGENTES_TABLE = 'agentes_sop';
+const { USERS_TABLE } = require('./usersModel');
 
 //Indicar que esquema se requiere que se cree en la base de datos, es decir sus campos y atributos de campo
 const agentesSchema = {
@@ -41,33 +42,47 @@ const agentesSchema = {
   nivel_atencion: {
     allowNull: false,
     type: DataTypes.CHAR(2),
-    defaultValue: "N1",
+    defaultValue: 'N1',
   },
   estatus: {
     allowNull: false,
     type: DataTypes.BOOLEAN,
     defaultValue: true,
   },
+  id_user: {
+    allowNull: true,
+    type: DataTypes.INTEGER,
+    references: {
+      model: USERS_TABLE,
+      key: 'id_user',
+    },
+    onUpdate: 'CASCADE',
+    onDelete: 'SET NULL',
+  },
   created_at: {
     allowNull: false,
     type: DataTypes.DATE,
-    field: "created_at",
+    field: 'created_at',
     defaultValue: Sequelize.NOW,
   },
   updated_at: {
     allowNull: false,
     type: DataTypes.DATE,
-    field: "updated_at",
+    field: 'updated_at',
     defaultValue: Sequelize.NOW,
   },
 };
 
 class Agentes extends Model {
+  static assocciate(models) {
+    this.belongsTo(models.Users, { as: 'users', foreignKey: 'id_user' });
+  }
+
   static config(sequelize) {
     return {
       sequelize,
       tableName: AGENTES_TABLE,
-      modelName: "Agentes",
+      modelName: 'Agentes',
       timestamps: false,
     };
   }

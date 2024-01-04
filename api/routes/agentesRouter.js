@@ -2,7 +2,7 @@ const express = require('express');
 const passport = require('passport');
 const AgentesServices = require('../services/agentesService'); //Import clase de los servicios
 const validatorHandler = require('../middlewares/validatorHandler');
-const { checkAdminRole } = require('../middlewares/authHandler'); //Traigo el validador de permisos
+const { checkAdminRole, checkRoles } = require('../middlewares/authHandler'); //Traigo el validador de permisos
 const {
   createAgenteSchema,
   updateAgenteSchema,
@@ -15,10 +15,10 @@ const service = new AgentesServices(); //Creo el objeto de servicios
 router.get(
   '/',
   passport.authenticate('jwt', { session: false }),
-  checkAdminRole,
+  checkRoles('admin', 'agente'),
   async (req, res, next) => {
     try {
-      const data = await service.find();
+      const data = await service.find(req.query);
       res.json(data);
     } catch (error) {
       next(error);
@@ -29,7 +29,7 @@ router.get(
 router.post(
   '/',
   passport.authenticate('jwt', { session: false }),
-  checkAdminRole,
+  checkRoles('admin', 'agente'),
   validatorHandler(createAgenteSchema, 'body'),
   async (req, res, next) => {
     try {
@@ -45,7 +45,7 @@ router.post(
 router.get(
   '/:id_agente',
   passport.authenticate('jwt', { session: false }),
-  checkAdminRole,
+  checkRoles('admin', 'agente'),
   validatorHandler(getAgenteSchema, 'params'), //Mando el esquema y las propidades de busqueda en este caso params
   async (req, res, next) => {
     try {
@@ -61,7 +61,7 @@ router.get(
 router.patch(
   '/:id_agente',
   passport.authenticate('jwt', { session: false }),
-  checkAdminRole,
+  checkRoles('admin', 'agente'),
   validatorHandler(getAgenteSchema, 'params'), //Primero valido el id
   validatorHandler(updateAgenteSchema, 'body'), //luego el body
   async (req, res, next) => {

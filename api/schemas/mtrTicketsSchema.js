@@ -12,13 +12,17 @@ const descrip_tk = Joi.string().min(4).max(255);
 const fecha_reg = Joi.any(); //Verficar validación formato timestamp
 const fecha_ini_sop = Joi.any();
 const fecha_fin_sop = Joi.any();
-const tiempo_calc_sop = Joi.number().precision(6);
-const tiempo_diferencial = Joi.number().precision(6);
-const tiempo_real_sop = Joi.number().precision(6);
+const tiempo_calc_sop = Joi.number().precision(2);
+const tiempo_diferencial = Joi.number().precision(2);
+const tiempo_real_sop = Joi.number().precision(2);
 const estatus = Joi.string().max(11);
-//Para Paginación
+//Para Paginación y querys
 const offset = Joi.number().integer();
 const limit = Joi.number().integer();
+const idemp = Joi.any();
+const rol = Joi.any();
+const idclient = Joi.any();
+const tracking = Joi.any();
 
 const createTicketSchema = Joi.object({
   id_ticket: id_ticket,
@@ -54,6 +58,10 @@ const getTicketSchema = Joi.object({
 const queryTicketSchema = Joi.object({
   limit,
   offset,
+  idemp,
+  rol,
+  idclient,
+  tracking,
 });
 
 module.exports = {

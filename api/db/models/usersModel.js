@@ -1,6 +1,6 @@
-const { Model, DataTypes, Sequelize } = require("sequelize");
+const { Model, DataTypes, Sequelize } = require('sequelize');
 
-const USERS_TABLE = "usuarios";
+const USERS_TABLE = 'usuarios';
 
 const UsersSchema = {
   id_user: {
@@ -24,14 +24,14 @@ const UsersSchema = {
     type: DataTypes.STRING,
   },
   recovery_token: {
-    field: "recovery_token",
+    field: 'recovery_token',
     allowNull: true,
     type: DataTypes.STRING,
   },
   rol: {
     allowNull: false,
     type: DataTypes.STRING(10),
-    defaultValue: "cliente",
+    defaultValue: 'cliente',
   },
   estatus: {
     allowNull: false,
@@ -41,13 +41,13 @@ const UsersSchema = {
   created_at: {
     allowNull: false,
     type: DataTypes.DATE,
-    field: "created_at",
+    field: 'created_at',
     defaultValue: Sequelize.NOW,
   },
   updated_at: {
     allowNull: false,
     type: DataTypes.DATE,
-    field: "updated_at",
+    field: 'updated_at',
     defaultValue: Sequelize.NOW,
   },
 };
@@ -55,8 +55,13 @@ const UsersSchema = {
 class Users extends Model {
   static assocciate(models) {
     this.hasOne(models.PersonalEmp, {
-      as: "personalEmp",
-      foreignKey: "id_user",
+      as: 'personalEmp',
+      foreignKey: 'id_user',
+    });
+
+    this.hasOne(models.Agentes, {
+      as: 'agentesSop',
+      foreignKey: 'id_user',
     });
   }
 
@@ -64,7 +69,7 @@ class Users extends Model {
     return {
       sequelize,
       tableName: USERS_TABLE,
-      modelName: "Users",
+      modelName: 'Users',
       timestamps: false,
     };
   }

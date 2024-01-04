@@ -1,11 +1,8 @@
 /** Servicios de usuarios
  * @module Servicios_Usuarios
  */
-/** Requiere la dependencia boom para mostrar mensajes personalizados tanto de éxito como de errores */
 const boom = require('@hapi/boom');
-/** Requiere la dependencia bcrypt para encriptar datos con hash*/
 const bcrypt = require('bcrypt');
-//Se debe usar la llamada reservada por sequelize "models" desde la libreria de conexión
 const { models } = require('../libs/sequelize');
 
 /** Clase para ejectuar los diferentes servicios de Usuarios */
@@ -46,7 +43,10 @@ class UsersServices {
   async filterId(id) {
     //Traigo las asociaciones del usuario, en dos niveles de anidamiento
     const answer = await models.Users.findByPk(id, {
-      include: [{ association: 'personalEmp', include: 'empresa' }],
+      include: [
+        { association: 'personalEmp', include: 'empresa' },
+        'agentesSop',
+      ],
     });
     if (!answer) {
       throw boom.notFound('Usuario no encontrado :(');

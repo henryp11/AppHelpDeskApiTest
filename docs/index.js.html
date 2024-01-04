@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>index.js - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="module-Servicios_Autorizacion-AuthService.html">AuthService</a><ul class='methods'><li data-type='method'><a href="module-Servicios_Autorizacion-AuthService.html#changePassword">changePassword</a></li><li data-type='method'><a href="module-Servicios_Autorizacion-AuthService.html#getUser">getUser</a></li><li data-type='method'><a href="module-Servicios_Autorizacion-AuthService.html#sendMail">sendMail</a></li><li data-type='method'><a href="module-Servicios_Autorizacion-AuthService.html#sendRecoveryMail">sendRecoveryMail</a></li><li data-type='method'><a href="module-Servicios_Autorizacion-AuthService.html#signToken">signToken</a></li></ul></li><li><a href="module-Servicios_Usuarios-UsersServices.html">UsersServices</a><ul class='methods'><li data-type='method'><a href="module-Servicios_Usuarios-UsersServices.html#create">create</a></li><li data-type='method'><a href="module-Servicios_Usuarios-UsersServices.html#delete">delete</a></li><li data-type='method'><a href="module-Servicios_Usuarios-UsersServices.html#filterId">filterId</a></li><li data-type='method'><a href="module-Servicios_Usuarios-UsersServices.html#find">find</a></li><li data-type='method'><a href="module-Servicios_Usuarios-UsersServices.html#findByEmail">findByEmail</a></li><li data-type='method'><a href="module-Servicios_Usuarios-UsersServices.html#update">update</a></li></ul></li></ul><h3>Modules</h3><ul><li><a href="module-Passport_JWT.html">Passport_JWT</a></li><li><a href="module-Passport_Local.html">Passport_Local</a></li><li><a href="module-Servicios_Autorizacion.html">Servicios_Autorizacion</a></li><li><a href="module-Servicios_Usuarios.html">Servicios_Usuarios</a></li></ul><h3>Global</h3><ul><li><a href="global.html#JwtStrategy">JwtStrategy</a></li><li><a href="global.html#LocalStrategy">LocalStrategy</a></li><li><a href="global.html#cors">cors</a></li><li><a href="global.html#express">express</a></li><li><a href="global.html#options">options</a></li><li><a href="global.html#passport">passport</a></li><li><a href="global.html#port">port</a></li><li><a href="global.html#whiteList">whiteList</a></li></ul>
+    
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">index.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/** Uso de libreria express.js para control de todo el api en el index principal */
+const express = require('express');
+/** Uso de libreria cors para habilitar permisos de acceso al api y no tener
+ * problemas al ingresar desde cualquier URL externa
+ */
+const cors = require('cors');
+const routerApi = require('./routes'); //Solo ingreso a la carpeta de rutas, el index.js al ser estándar se leerá directamente sin necesidad de especificarlo
+const { checkApiKey } = require('./middlewares/authHandler');
+
+/** Desestructuración de funciones a traer desde el middleware que controla los errores */
+const {
+  logErrors,
+  errorHandler,
+  boomErrorHandler,
+  ormErrorHandler,
+} = require('./middlewares/errorHandle');
+const app = express(); //Express es un método que me va a crear la aplicación
+/** Puerto será leido desde variable de entorno para producción */
+const port = process.env.PORT || 3000;
+
+app.use(express.json()); // Middleware para habilitar las peticiones en JSON
+
+/** Lista blanca para añadir los CORS
+ * @type {Array&lt;string>}
+ */
+const whiteList = [
+  'http://localhost:8080',
+  'http://localhost:3001',
+  'https://mydominioexterno.com',
+];
+
+/** Opciones a enviar en el cors con una función que evalua el origen de las peticiones
+* y devuelve un callback para permitir o bloquear acceso.
+* Se evalua la whiteList y también se habilita el propio localhost en caso de desarrollo local
+@type {Object}
+*/
+const options = {
+  origin: (origin, callback) => {
+    //EL or !origin es para que no bloquee el propio localhost
+    if (whiteList.includes(origin) || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error('Acceso no permitido'));
+    }
+  },
+};
+
+//app.use(cors()); //Invocando de esta forma estoy habilitando conexiones desde cualquier dominio
+app.use(cors(options)); //Solo dominios permitidos
+
+//Para ejecutar el index de auth y utilizar la autenticación de passport
+require('./utils/auth');
+
+//Levanto mi servidor y envío un respuesta, usando la ruta deseada
+app.get('/api', (req, res) => {
+  res.send('Hola desde el servidor de express');
+});
+
+//Probando ruta de autorización, se envía como otro parámetro antes del callback
+app.get('/api/otra-ruta', checkApiKey, (req, res) => {
+  res.send('Hola desde otra RUTA');
+});
+
+routerApi(app);
+//LLamo a los middleware, recordar ponerlos en el orden de la secuenciar que quiero
+app.use(logErrors);
+app.use(ormErrorHandler);
+app.use(boomErrorHandler);
+app.use(errorHandler);
+
+//PReparo el puerto donde se escuchará
+app.listen(port, () => {
+  console.log(`Servidor escuchando en el puerto ${port}`);
+});
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Mon Oct 16 2023 20:28:00 GMT-0500 (hora estándar de Colombia) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+
+
+</body>
+</html>

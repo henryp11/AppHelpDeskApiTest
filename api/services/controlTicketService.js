@@ -66,7 +66,7 @@ class ControlTicketServices {
       id_ticket: ticketId,
       id_solicitud: solicitudId,
     });
-    return { message: 'Registro creado con éxito', newRegister };
+    return { message: 'Control creado con éxito', newRegister };
   }
 
   async update(id, changes) {

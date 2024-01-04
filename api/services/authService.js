@@ -1,23 +1,13 @@
 /** Servicios de autorización
  * @module Servicios_Autorizacion
  */
-
-/** Requiere la dependencia bcrypt para encriptar datos con hash*/
 const bcrypt = require('bcrypt');
-/** Requiere la dependencia boom para mostrar mensajes personalizados tanto de éxito como de errores */
 const boom = require('@hapi/boom');
-
 /**Requiere los servicios de usuarios: {@link module:Servicios_Usuarios} */
 const UserService = require('./usersService');
-/** Se crea el objeto de tipo UserService para usar las funciones de los servicios de usuario: {@link module:Servicios_Usuarios} */
 const service = new UserService();
-
-/** Requiere la dependencia jsonwebtoken para el uso de tokens */
-const jwt = require('jsonwebtoken');
-
-/** Requiere la dependencia nodemailer para utilizar servidor de correos */
-const nodemailer = require('nodemailer');
-
+const jwt = require('jsonwebtoken'); /** Requiere la dependencia jsonwebtoken para el uso de tokens */
+const nodemailer = require('nodemailer'); /** Requiere la dependencia nodemailer para utilizar servidor de correos */
 const { config } = require('../../config/config');
 
 /** Clase para ejecutar los diferentes servicios de Autenticación */
@@ -54,8 +44,8 @@ class AuthService {
   signToken(user) {
     //Preparo información para armar token, el objeto "user" vendrá de la ruta de la petición
     //en el caso de datos de la empresa (idEmp, nameEmp, havePlan), puede darse el caso de que aun no haya sido asignado
-    //Un usuario a su respectiva emrpesa (ejemplo, por migración inicial de datos o un usuario que solo se registro en el sistema pero no se asigno a ninguna empresa)
-    //Por tal motivo se evalua que la propiedad user.personalEmp no se nula, ya que el API envía en su consulta esa información, pero si no existem lo manda como NULL
+    //Un usuario a su respectiva empresa (ejemplo, por migración inicial de datos o un usuario que solo se registro en el sistema pero no se asigno a ninguna empresa)
+    //Por tal motivo se evalua que la propiedad user.personalEmp no sea nula, ya que el API envía en su consulta esa información, pero si no existem lo manda como NULL
     //de esta forma puedo identificar los datos de la empresa del usuario se ingrese al sistema mediante su token y realizar varias acciones dependiendo del caso
     const payload = {
       sub: user.id_user,
@@ -73,6 +63,7 @@ class AuthService {
         user.personalEmp === null ? 'SIN_EMPRESA' : user.personalEmp.id_per,
       havePlan:
         user.personalEmp === null ? false : user.personalEmp.empresa.planMant,
+      agSop: user.agentesSop === null ? '-' : user.agentesSop.id_agente,
     };
     const token = jwt.sign(payload, config.jwtSecret, { expiresIn: '1h' });
 

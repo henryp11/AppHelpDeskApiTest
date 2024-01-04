@@ -2,7 +2,6 @@ const express = require('express');
 const passport = require('passport');
 const MtrTicketServices = require('../services/mtrTicketService'); //Import clase de los servicios
 const validatorHandler = require('../middlewares/validatorHandler');
-const { checkAdminRole, checkRoles } = require('../middlewares/authHandler'); //Traigo el validador de permisos
 const {
   createTicketSchema,
   updateTicketSchema,
@@ -11,14 +10,14 @@ const {
 } = require('../schemas/mtrTicketsSchema');
 
 const router = express.Router();
-const service = new MtrTicketServices(); //Creo el objeto de servicios
+const service = new MtrTicketServices(); //Creo el objeto para obtener los métodos de servicios
 
-//Get para todas las empresas con paginación
+//Get para todos los tickets obteniendo parámetro de ruta
 router.get(
   '/',
   passport.authenticate('jwt', { session: false }),
+  validatorHandler(queryTicketSchema, 'query'),
   async (req, res, next) => {
-    validatorHandler(queryTicketSchema, 'query');
     try {
       const data = await service.find(req.query);
       res.json(data);
@@ -84,6 +83,7 @@ router.get(
 
 router.patch(
   '/:id_ticket',
+  passport.authenticate('jwt', { session: false }),
   validatorHandler(getTicketSchema, 'params'), //Primero valido el id
   validatorHandler(updateTicketSchema, 'body'), //luego el body
   async (req, res, next) => {
