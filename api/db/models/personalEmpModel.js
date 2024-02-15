@@ -38,11 +38,11 @@ const PersonalEmpSchema = {
   },
   cargo: {
     allowNull: true,
-    type: DataTypes.STRING(15),
+    type: DataTypes.STRING(50),
   },
   depto: {
     allowNull: true,
-    type: DataTypes.STRING(15),
+    type: DataTypes.STRING(50),
   },
   correo: {
     allowNull: true,

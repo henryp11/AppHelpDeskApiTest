@@ -24,7 +24,11 @@ class EmpresasServicesORM {
   //Conexión con ORM: No se requiere un constructor ya que sequelize usa pool por defecto
   async find(query) {
     const { limit, offset, plan_mant } = query;
-    const options = { where: {}, order: [['id_emp', 'ASC']] }; //Para añadir opciones al método del ORM en este caso limit y offset
+    const options = {
+      where: {},
+      order: [['id_emp', 'ASC']],
+      include: 'personal_emp',
+    }; //Para añadir opciones al método del ORM en este caso limit y offset
     //Valido si se envián los query params y los añado al objeto
     if (limit && offset) {
       options.limit = limit;
