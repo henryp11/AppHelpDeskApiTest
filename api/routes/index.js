@@ -15,6 +15,7 @@ const controlTickets = require('./controlTicketsRouter');
 const ticketsByClient = require('./ticketsClientRouter');
 const authRouter = require('./authRouter');
 const planesRouter = require('./planesRouter');
+const categoryRouter = require('./categoryRouter');
 const agentesRouter = require('./agentesRouter');
 const reports = require('./reportsRouter');
 
@@ -36,6 +37,7 @@ function routerApi(app) {
   mainRouteApi.use('/profile', ticketsByClient); //Servicios de tickets por cliente
   mainRouteApi.use('/auth', authRouter); //Servicios de autenticación y autorización
   mainRouteApi.use('/planes', planesRouter); //Servicios de planes de mantenimiento
+  mainRouteApi.use('/category', categoryRouter); //Servicios de categorías de soporte
   mainRouteApi.use('/agentes', agentesRouter); //Servicios para gentes de soporte
   mainRouteApi.use('/reports', reports); //Servicios para geenración de reportes
 }

@@ -112,6 +112,10 @@ class MtrTickets extends Model {
       as: 'det_tickets',
       foreignKey: 'id_ticket',
     });
+    this.belongsTo(models.Categories, {
+      as: 'categorias_sop',
+      foreignKey: 'id_tipo',
+    });
   }
 
   static config(sequelize) {

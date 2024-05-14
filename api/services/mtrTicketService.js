@@ -12,6 +12,7 @@ class MtrTicketServices {
       include: [
         { association: 'personal_emp', include: 'empresa' },
         'det_tickets',
+        'categorias_sop',
       ],
     }; //Para añadir opciones al método del ORM en este caso limit y offset
     //Valido si se envián los query params y los añado al objeto
@@ -27,15 +28,15 @@ class MtrTicketServices {
         options.where.id_emp = idemp;
         if (tracking === 'true') {
           //PARA TRACKING QUITO LOS ANULADOS Y FINALIZADOS.
-          options.where.id_emp = idemp;
+          // options.where.id_emp = idemp;
           options.where.estatus = estatusEspecifico;
         }
       } else if (rol === 'cliente') {
         options.where.id_emp = idemp;
         options.where.id_cliente = idclient;
         if (tracking === 'true') {
-          options.where.id_emp = idemp;
-          options.where.id_cliente = idclient;
+          // options.where.id_emp = idemp;
+          // options.where.id_cliente = idclient;
           options.where.estatus = estatusEspecifico;
         }
       } else if (rol === 'agente') {
@@ -55,7 +56,8 @@ class MtrTicketServices {
     const options = {
       include: [
         { association: 'personal_emp', include: 'empresa' },
-        'det_tickets',
+        { association: 'det_tickets', include: 'agentes_sop' },
+        'categorias_sop',
       ],
     };
     const answer = await models.MtrTickets.findByPk(id, options);

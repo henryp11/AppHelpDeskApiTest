@@ -13,7 +13,7 @@ const {
 const router = express.Router();
 const service = new DetTicketServices(); //Creo el objeto de servicios
 
-//Get para todas las empresas con paginación
+//Get para todas las solicitudes con paginación
 router.get(
   '/',
   passport.authenticate('jwt', { session: false }),
@@ -115,14 +115,15 @@ router.patch(
   }
 );
 
+//Delete de todas las solicitudes de un ticket
 router.delete(
-  '/:id_solicitud',
+  '/:id_ticket',
   passport.authenticate('jwt', { session: false }),
-  validatorHandler(getSolicitudSchema, 'params'), //Primero valido el id
+  // validatorHandler(getSolicitudSchema, 'params'), //Primero valido el id
   async (req, res, next) => {
     try {
-      const { id_solicitud } = req.params;
-      const regDelete = await service.delete(id_solicitud);
+      const { id_ticket } = req.params;
+      const regDelete = await service.deleteAllSolic(id_ticket);
       res.json(regDelete);
     } catch (error) {
       next(error);

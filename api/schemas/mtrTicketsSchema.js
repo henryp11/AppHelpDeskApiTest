@@ -7,7 +7,7 @@ const id_cliente = Joi.string()
   .max(10);
 const id_emp = Joi.string().alphanum().min(4).max(4);
 const prioridad = Joi.string().alphanum().min(4).max(4);
-const id_tipo = Joi.string().alphanum().min(4).max(4);
+const id_tipo = Joi.string().alphanum().min(3).max(3);
 const descrip_tk = Joi.string().min(4).max(255);
 const fecha_reg = Joi.any(); //Verficar validación formato timestamp
 const fecha_ini_sop = Joi.any();

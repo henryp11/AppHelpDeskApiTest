@@ -1,6 +1,7 @@
 const boom = require('@hapi/boom');
 const { Op } = require('sequelize'); //Para usar operadores de consultas directo desde sequelize
 const { models } = require('../libs/sequelize'); //Usando ORM PARA USAR MODELOS
+const sequelize = require('../libs/sequelize'); //Usando ORM Para usar queries directos
 const ControlTicketServices = require('./controlTicketService');
 const serviceControl = new ControlTicketServices(); //Creo el objeto para traer servicios de controles de solicitudes
 
@@ -26,8 +27,12 @@ class DetTicketServices {
       include: [
         {
           association: 'mtr_tickets',
-          include: [{ association: 'personal_emp', include: 'empresa' }],
+          include: [
+            { association: 'personal_emp', include: 'empresa' },
+            'categorias_sop',
+          ],
         },
+        'agentes_sop',
       ],
     }; //Para añadir opciones al método del ORM en este caso limit y offset
     //Valido si se envián los query params y los añado al objeto
@@ -86,7 +91,10 @@ class DetTicketServices {
       include: [
         {
           association: 'mtr_tickets',
-          include: [{ association: 'personal_emp', include: 'empresa' }],
+          include: [
+            { association: 'personal_emp', include: 'empresa' },
+            'categorias_sop',
+          ],
         },
       ],
     };
@@ -166,10 +174,23 @@ class DetTicketServices {
     return { message: 'Datos actualizados', dataUpdate };
   }
 
+  //Delete simple por id de solicitud
   async delete(id) {
     const findReg = await this.filterId(id);
     await findReg.destroy();
     return { message: `Registro ${id} eliminado!` };
+  }
+
+  //Delete De todos las solicitudes de un ticket con query directo ya que
+  //el método destroy() solo elimina la primera instancia que encuentre así tenga varios registros que eliminar (no funciono ni colocando el where dentro de la función destroy como menciona la documentación),
+  // en este caso necesito eliminar todas las solicitudes de un ticket por eso se usa un DELETE por query
+  // Considerar este caso cuando se deba cambiar de BASE DE DATOS.
+  async deleteAllSolic(id_ticket) {
+    //const findReg = await this.filterAllSolByTicket(id_ticket);
+    const query = `DELETE from det_tickets where id_ticket=${id_ticket}`;
+    const metadata = await sequelize.query(query);
+    console.log({ metadata: metadata });
+    return { message: `Solicitudes del ticket ${id_ticket} eliminadas!` };
   }
 }
 
