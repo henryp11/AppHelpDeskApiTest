@@ -18,20 +18,20 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json()); // Middleware para habilitar las peticiones en JSON
 
-/** Lista blanca para añadir los CORS
- * @type {Array<string>}
- */
+/** Lista blanca para añadir los CORS*/
 const whiteList = [
   'http://localhost:8080',
   'http://localhost:3001',
+  'http://192.168.200.15',
+  'http://192.168.200.14',
+  'http://192.168.200.14:3001',
+  'http://192.168.200.15:3001',
   'https://mydominioexterno.com',
 ];
 
 /** Opciones a enviar en el cors con una función que evalua el origen de las peticiones
-* y devuelve un callback para permitir o bloquear acceso.
-* Se evalua la whiteList y también se habilita el propio localhost en caso de desarrollo local
-@type {Object}
-*/
+ * y devuelve un callback para permitir o bloquear acceso.
+ * Se evalua la whiteList y también se habilita el propio localhost en caso de desarrollo local*/
 const options = {
   origin: (origin, callback) => {
     //EL or !origin es para que no bloquee el propio localhost
@@ -43,8 +43,8 @@ const options = {
   },
 };
 
-//app.use(cors()); //Invocando de esta forma estoy habilitando conexiones desde cualquier dominio
-app.use(cors(options)); //Solo dominios permitidos
+//app.use(cors(options)); //Solo dominios permitidos
+app.use(cors()); //Invocando de esta forma estoy habilitando conexiones desde cualquier dominio
 
 //Para ejecutar el index de auth y utilizar la autenticación de passport
 require('./utils/auth');

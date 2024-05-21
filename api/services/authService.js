@@ -1,9 +1,5 @@
-/** Servicios de autorización
- * @module Servicios_Autorizacion
- */
 const bcrypt = require('bcrypt');
 const boom = require('@hapi/boom');
-/**Requiere los servicios de usuarios: {@link module:Servicios_Usuarios} */
 const UserService = require('./usersService');
 const service = new UserService();
 const jwt = require('jsonwebtoken'); /** Requiere la dependencia jsonwebtoken para el uso de tokens */
@@ -12,13 +8,6 @@ const { config } = require('../../config/config');
 
 /** Clase para ejecutar los diferentes servicios de Autenticación */
 class AuthService {
-  /**
-   * Servicio para obtener usuario por su email y password,
-   * utiliza la función findByEmail() desde: {@link module:Servicios_Usuarios~UsersServices#findByEmail}
-   * @param {string} email email/usuario para iniciar sesión
-   * @param {string} password contraseña
-   * @return {Object} Información de todo el usuario
-   */
   async getUser(email, password) {
     const user = await service.findByEmail(email);
     if (!user) {
@@ -35,12 +24,6 @@ class AuthService {
     return user;
   }
 
-  /** Servicio para firmar token, realiza el firmado del token mediante la función sign() de JWT
-   * @see https://github.com/auth0/node-jsonwebtoken#jwtsignpayload-secretorprivatekey-options-callback
-   * @param {Object} user Datos del usuario registrado, de donde se extraerá su id_user, rol y estatus
-   * @return {Object} Información de todo el usuario
-   * @return {string} Token asignado al usuario
-   */
   signToken(user) {
     //Preparo información para armar token, el objeto "user" vendrá de la ruta de la petición
     //en el caso de datos de la empresa (idEmp, nameEmp, havePlan), puede darse el caso de que aun no haya sido asignado
@@ -64,18 +47,16 @@ class AuthService {
       havePlan:
         user.personalEmp === null ? false : user.personalEmp.empresa.planMant,
       agSop: user.agentesSop === null ? '-' : user.agentesSop.id_agente,
+      nameAgSop: user.agentesSop === null ? '-' : user.agentesSop.nombre,
     };
-    const token = jwt.sign(payload, config.jwtSecret, { expiresIn: '1h' });
+    const token = jwt.sign(payload, config.jwtSecret, {
+      expiresIn: user.rol === 'cliente' ? '1h' : '8h',
+    });
 
     return { user, token };
   }
 
   //Función que se reutilizará para otro tipo de enviós de correo
-  /** Servicio para enviar correos usando el servicio de nodeMailer, se la invocará dependiendo del tipo de correo a enviar
-   * @see https://nodemailer.com/about/#example
-   * @param {Object} infoMail Información del correo a enviar
-   * @return {{string}} Objeto con un mensaje de confirmación
-   */
   async sendMail(infoMail) {
     //CreateTransport() --> función de nodemail
     const transporter = nodemailer.createTransport({
@@ -92,10 +73,7 @@ class AuthService {
     return { message: 'Correo enviado con éxito!!' };
   }
 
-  /** Función para enviar correo de recuperación de contraseña, se genera un token temporal de 15 minutos para la recuperación
-   * @param {string} email Email a buscar con el servicio de usuarios findByEmail de la clase {@link module:Servicios_Usuarios~UsersServices#findByEmail}
-   * @return {response} Objeto con la respuesta del envío, es decir el correo de recuperación
-   */
+  // Función para enviar correo de recuperación de contraseña, se genera un token temporal de 15 minutos para la recuperación
   async sendRecoveryMail(email) {
     // Primero busco si el usuario existe previamente por su email
     const user = await service.findByEmail(email);
@@ -120,7 +98,7 @@ class AuthService {
       to: `${user.mail}`, //Si se encuentra el usuario extraigo su email del objeto
       subject: 'Recuperación de Contraseña para app de Soporte Capacity-Soft',
       html: `<div>Has realizado una solicitud para recuperación de tu contraseña. <br/> 
-      Por favor <b>ingresa al siguiente enlace para realizar el cambio de contraseña:<b>
+      Por favor <b>ingresa al siguiente enlace para realizar el cambio de contraseña:<br/><b>
       <b><a href=${link}>${link}</a></b></div>`,
     };
 
@@ -128,15 +106,6 @@ class AuthService {
     return response;
   }
 
-  /** Función para cambiar la contraseña del usuario, se utiliza la función verify() de jwt para verificar
-   * el token de recuperación que coincida con el token guardado a la BD para poder cambiar la contraseña.
-   * Se utilizan los métodos de la clase de servicios de usuario,
-   * filterId: {@link module:Servicios_Usuarios~UsersServices#filterId} y update: {@link module:Servicios_Usuarios~UsersServices#update}
-   * @see https://github.com/auth0/node-jsonwebtoken#jwtverifytoken-secretorpublickey-options-callback
-   * @param {string} token Token de la sesión activa para el cambio de contraseña
-   * @param {string} newPassword Nueva contraseña
-   * @return {Object} Objeto con la respuesta de confirmación de cambio de contraseña
-   */
   async changePassword(token, newPassword) {
     try {
       // 1. Verifico el token firmado
@@ -158,6 +127,83 @@ class AuthService {
     } catch (error) {
       throw boom.unauthorized();
     }
+  }
+
+  //Send Correo cuando se asigna el agente a la solicitud
+  async sendMailTicketAsign(
+    id_ticket,
+    id_solicitud,
+    emailClient,
+    agente,
+    estatus,
+    descripSolic,
+    detSolucion
+  ) {
+    // Primero busco si el usuario existe previamente por su email
+    const user = await service.findByEmail(emailClient);
+    console.log({ userUp: user });
+    if (!user) {
+      throw boom.unauthorized();
+    }
+
+    const mailAssign = {
+      from: `${config.emailSender}`,
+      to: `${user.mail}`, //Si se encuentra el usuario extraigo su email del objeto
+      subject: `Ticket de soporte # ${id_ticket}-${id_solicitud} asignado - HelpDesk Capacity-Soft`,
+      html: `<div>Estimado/a ${user.username}<br/><br/>
+      Se ha asignado el agente de soporte <b>${agente}</b>. a su ticket # <b>${id_ticket}-${id_solicitud}</b> con la siguiente descripción:
+      <p>---<i>${descripSolic}</i>---</p>
+      Cuando comience el proceso de atención, recibirá una notificación de que el agente de soporte está procesando su petición.<br/>
+      <br/>
+      <b><i>HelpDesk Capacity-Soft</i></b><br/><br/>
+      <i>*Este es un correo automático, por favor no responder</i>
+      </div>`,
+    };
+    const mailBegin = {
+      from: `${config.emailSender}`,
+      to: `${user.mail}`, //Si se encuentra el usuario extraigo su email del objeto
+      subject: `Ticket de soporte # ${id_ticket}-${id_solicitud} Iniciado HelpDesk Capacity-Soft`,
+      html: `<div>Estimado/a ${user.username}<br/><br/>
+      La solicitud de su ticket # <b>${id_ticket}-${id_solicitud}</b> con la siguiente descripción:
+      <p>---<i>${descripSolic}</i>---</p>
+      Ha comenzado a ser atendida por el agente de soporte <b>${agente}</b>.<br/> 
+      Si es necesario, el agente se comunicará con usted para brindarle el soporte requerido. Por favor este atento a su número o correo de contacto.<br/>
+      <br/>
+      <b><i>HelpDesk Capacity-Soft</i></b><br/><br/>
+      <i>*Este es un correo automático, por favor no responder</i>
+      </div>`,
+    };
+
+    const mailFinish = {
+      from: `${config.emailSender}`,
+      to: `${user.mail}`, //Si se encuentra el usuario extraigo su email del objeto
+      subject: `Ticket de soporte # ${id_ticket}-${id_solicitud} Finalizado - HelpDesk Capacity-Soft`,
+      html: `<div>Estimado/a ${user.username}<br/><br/>
+      La solicitud de su ticket # <b>${id_ticket}-${id_solicitud}</b> con la descripción:
+      <p>---<i>${descripSolic}</i>---</p>
+      Ha <b>finalizado</b> con éxito.<br/>
+      A continuación se presenta el detalle de la solución brindada a su solicitud:
+      <p><i>"${detSolucion}"<i><p/>
+      Gracias por usar nuestro software de atención y seguimiento al cliente.<br/>
+      <b><i>HelpDesk Capacity-Soft</i></b><br/><br/>
+      <i>*Este es un correo automático, por favor no responder</i>
+      </div>`,
+    };
+
+    //Estatus: determina el tipo de correo a enviar
+    //1= Solicitud Asignada
+    //2= Inicia atención
+    //3= Finaliza Atención
+    const response = await this.sendMail(
+      estatus === 1
+        ? mailAssign
+        : estatus === 2
+        ? mailBegin
+        : estatus === 3
+        ? mailFinish
+        : ''
+    );
+    return response;
   }
 }
 module.exports = AuthService;

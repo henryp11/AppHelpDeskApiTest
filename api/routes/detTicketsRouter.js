@@ -1,6 +1,7 @@
 const express = require('express');
 const passport = require('passport');
 const DetTicketServices = require('../services/detTicketService'); //Import clase de los servicios
+const AuthService = require('../services/authService');
 const validatorHandler = require('../middlewares/validatorHandler');
 const { checkAdminRole, checkRoles } = require('../middlewares/authHandler'); //Traigo el validador de permisos
 const {
@@ -12,6 +13,7 @@ const {
 
 const router = express.Router();
 const service = new DetTicketServices(); //Creo el objeto de servicios
+const serviceMail = new AuthService();
 
 //Get para todas las solicitudes con paginación
 router.get(
@@ -109,6 +111,38 @@ router.patch(
       const body = req.body;
       const regUpdate = await service.update(id_ticket, id_solicitud, body);
       res.json(regUpdate);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+//Enviar correo de confirmación de agente asignado
+router.post(
+  '/sendMail/assigned',
+  passport.authenticate('jwt', { session: false }),
+  async (req, res, next) => {
+    console.log(req);
+    try {
+      const {
+        id_ticket,
+        id_solicitud,
+        emailClient,
+        agente,
+        estatus,
+        descripSolic,
+        detSolucion,
+      } = req.body;
+      const response = await serviceMail.sendMailTicketAsign(
+        id_ticket,
+        id_solicitud,
+        emailClient,
+        agente,
+        estatus,
+        descripSolic,
+        detSolucion
+      );
+      res.json(response);
     } catch (error) {
       next(error);
     }

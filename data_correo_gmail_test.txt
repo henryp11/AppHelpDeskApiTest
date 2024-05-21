@@ -1,0 +1,4 @@
+EMAIL_SENDER="senninmod@gmail.com"
+EMAIL_SENDER_PASS="jptnilpzweozmwbs"
+EMAIL_SENDER_HOST="smtp.gmail.com"
+EMAIL_SENDER_PORT_SSL=465
