@@ -3,7 +3,8 @@ const { config } = require('../../config/config');
 
 function checkApiKey(req, res, next) {
   const apiKey = req.headers['api'];
-  if (apiKey === config.apiKey) {
+  // if (apiKey === config.apiKey) {
+  if (apiKey === process.env.API_KEY) {
     next();
   } else {
     next(boom.unauthorized());
