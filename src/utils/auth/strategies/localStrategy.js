@@ -1,15 +1,7 @@
-/**
- * Funciones para utilizar estrategia local de la librería passport
- * @module Passport_Local */
 const { Strategy } = require('passport-local'); //Se utiliza la libreria de passport-local trayendo la clase Strategy
 const AuthService = require('../../../services/authService');
 const service = new AuthService();
 
-/** Creo nuevo constructor para la estrategia deseada
- * Requiere como parametros un objeto con los datos a validar, en este caso el nombre de usuario determinado por el correo y la contraseña
- * Y como segundo parámetro una función asíncrona, la cual requerirá un email y password así como una función de validación "done" propia de Passport, que indica cuando todo es OK
- *@see https://www.passportjs.org/concepts/authentication/strategies/
- */
 const LocalStrategy = new Strategy(
   {
     usernameField: 'mail',
