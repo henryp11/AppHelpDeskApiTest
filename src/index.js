@@ -2,8 +2,8 @@
 const express = require('express');
 /** Uso de libreria cors para habilitar permisos de acceso al api y no tener problemas al ingresar desde cualquier URL externa*/
 const cors = require('cors');
-const routerApi = require('./api/routes'); //Solo ingreso a la carpeta de rutas, el index.js al ser estándar se leerá directamente sin necesidad de especificarlo
-const { checkApiKey } = require('./api/middlewares/authHandler');
+const routerApi = require('./routes'); //Solo ingreso a la carpeta de rutas, el index.js al ser estándar se leerá directamente sin necesidad de especificarlo
+const { checkApiKey } = require('./middlewares/authHandler');
 
 /** Desestructuración de funciones a traer desde el middleware que controla los errores */
 const {
@@ -11,7 +11,7 @@ const {
   errorHandler,
   boomErrorHandler,
   ormErrorHandler,
-} = require('./api/middlewares/errorHandle');
+} = require('./middlewares/errorHandle');
 const app = express(); //Express es un método que me va a crear la aplicación
 /** Puerto será leido desde variable de entorno para producción */
 const port = process.env.PORT || 3000;
@@ -45,7 +45,7 @@ app.use(cors(options)); //Solo dominios permitidos
 //app.use(cors()); //Invocando de esta forma estoy habilitando conexiones desde cualquier dominio
 
 //Para ejecutar el index de auth y utilizar la autenticación de passport
-require('./api/utils/auth');
+require('./utils/auth');
 
 //Levanto mi servidor y envío un respuesta, usando la ruta deseada
 app.get('/api', (req, res) => {
