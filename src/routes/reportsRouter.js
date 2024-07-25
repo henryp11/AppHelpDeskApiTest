@@ -26,6 +26,20 @@ router.get(
     }
   }
 );
+//Get para todas las solicitudes para reporte detallado obteniendo parámetro de ruta
+router.get(
+  '/solicitudes',
+  passport.authenticate('jwt', { session: false }),
+  // validatorHandler(queryTicketSchema, 'query'),
+  async (req, res, next) => {
+    try {
+      const data = await service.findSolicitudes(req.query);
+      res.json(data);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
 //Get para Tickets por id
 router.get(

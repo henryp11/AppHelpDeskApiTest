@@ -1,6 +1,3 @@
-/** Servicios para Control de Empresas
- * @module Servicios_Empresas
- */
 const boom = require('@hapi/boom');
 const { Op } = require('sequelize'); //Para usar operadores de consultas directo desde sequelize
 //const sequelize = require("../libs/sequelize"); //Usando ORM PARA CONSULTAS DIRECTAS
@@ -9,17 +6,6 @@ const { models } = require('../libs/sequelize'); //Usando ORM PARA USAR MODELOS
 
 /** Clase para ejectuar los diferentes servicios de Empresas */
 class EmpresasServicesORM {
-  /** Listar todas las empresas, mediante la función findAll() de sequelize. Se considera utilizar
-   * un limit y offset para usar paginación de datos, tambien se puede filtrar a las empresas que solo
-   * tengan plan de mantenimineto, todos estos parámetros vendrán desde los query_params de la ruta y se enviarán como parámetro a
-   * la función findAll()
-   * @example
-   * const options = { where: {}, order: [['id_emp', 'ASC']] };
-   * plan_mant && options.where.plan_mant = plan_mant;
-   * const allEmpresas = await models.Empresa.findAll(options);
-   * @see https://sequelize.org/docs/v6/core-concepts/model-querying-finders/#findall
-   * @return {Array<Object>} Devuelve un Array de objetos, con todos los datos de cada Empresa desde el modelo de sequelize
-   */
   //USANDO EL MODELO DEL ORM sin query`s
   //Conexión con ORM: No se requiere un constructor ya que sequelize usa pool por defecto
   async find(query) {
@@ -54,11 +40,6 @@ class EmpresasServicesORM {
     return empresa;
   }
 
-  /** Busqueda por el id de empresa, mediante la función findByPk() de sequelize
-   * @see https://sequelize.org/docs/v6/core-concepts/model-querying-finders/#findbypk
-   * @param {string} id Id de la empresa a buscar
-   * @return {Object} Devuelve el objeto con los datos de la empresa encontrada
-   */
   async filterId(id) {
     //Se realiza la búsqueda anidada por PK y con anidación a la FK de contratos
     const empresa = await models.Empresa.findByPk(id, {
@@ -70,22 +51,11 @@ class EmpresasServicesORM {
     return empresa;
   }
 
-  /** Crear nueva empresa, se utiliza la función create() de sequelize
-   * @see https://sequelize.org/docs/v6/core-concepts/model-querying-basics/#simple-insert-queries
-   * @param {Object} data Objeto con toda la información de la empresa a crear
-   * @return {Object} Devuelve un mensaje de confirmación con el objeto creado
-   */
   async create(data) {
     const newEmpresa = await models.Empresa.create(data);
     return { message: 'Registro creado con éxito', newEmpresa };
   }
 
-  /** Actualiza información de empresa, mediante la función update() de sequelize
-   * @see https://sequelize.org/docs/v6/core-concepts/model-querying-basics/#simple-update-queries
-   * @param {string} id Id de la empresa a buscar para su actualización
-   * @param {Object} changes Objeto con los datos a actualizar
-   * @return {Object} Devuelve el objeto con los datos del registro actualizado
-   */
   async update(id, changes) {
     //Primero busco con la función ya creada
     const empresa = await this.filterId(id);
@@ -95,11 +65,6 @@ class EmpresasServicesORM {
     return { message: 'Datos actualizados', empresaUpdated };
   }
 
-  /** Eliminar una empresa, mediante la función destroy() de sequelize
-   * @see https://sequelize.org/docs/v6/core-concepts/model-querying-basics/#simple-delete-queries
-   * @param {string} id Id de la empresa a eliminar
-   * @return {Object} Devuelve mensaje con el id de la empresa eliminada
-   */
   async delete(id) {
     const empresa = await this.filterId(id); //busco registro con la función ya creada
     await empresa.destroy();

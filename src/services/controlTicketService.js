@@ -38,6 +38,7 @@ class ControlTicketServices {
         id_ticket: id,
         id_solicitud: id_solicitud,
       },
+      include: ['agentes_sop'],
     };
 
     const answer = await models.ControlTickets.findAll(options);

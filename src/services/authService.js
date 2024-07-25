@@ -87,7 +87,7 @@ class AuthService {
     //El link se enviará a la vista del frontend para que recupere la contraseña
     //En el cual se enviará el token.
     // const link = `http://myfrontend.com/recovery?token=${token}&mail=${email}`;
-    const link = `http://localhost:3001/recovery/changepass?rectk=${token}&mail=${email}`;
+    const link = `${config.apiRoute}/recovery/changepass?rectk=${token}&mail=${email}`;
 
     //Uso la función de update() del modelo de usuario para actualizar
     //el nuevo campo creado con la información del token y almacenarlo en la BD

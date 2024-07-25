@@ -17,7 +17,7 @@ const service = new EmpresasORMServices(); //Creo el objeto de servicios
 router.get(
   '/',
   passport.authenticate('jwt', { session: false }),
-  checkRoles('admin'),
+  checkRoles('admin', 'agente'),
   validatorHandler(queryEmpresaSchema, 'query'),
   async (req, res, next) => {
     try {
@@ -77,7 +77,7 @@ router.post(
 router.get(
   '/:id_emp',
   passport.authenticate('jwt', { session: false }),
-  checkRoles('admin'),
+  checkRoles('admin', 'agente', 'supervisor'),
   validatorHandler(getEmpresaSchema, 'params'), //Mando el esquema y las propidades de busqueda en este caso params
   async (req, res, next) => {
     try {
