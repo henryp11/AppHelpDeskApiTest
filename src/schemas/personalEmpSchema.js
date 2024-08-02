@@ -31,6 +31,7 @@ const createPersonalEmpSchema = Joi.object({
 });
 
 const updatePersonalEmpSchema = Joi.object({
+  id_per: id_per,
   id_emp: id_emp,
   nombre: nombre,
   telf1: telf1,

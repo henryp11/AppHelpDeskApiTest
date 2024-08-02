@@ -20,7 +20,7 @@ const mtrTicketsSchema = {
       key: 'id_per',
     },
     onUpdate: 'CASCADE',
-    onDelete: 'SET NULL',
+    onDelete: 'RESTRICT',
   },
   id_emp: {
     allowNull: false,
