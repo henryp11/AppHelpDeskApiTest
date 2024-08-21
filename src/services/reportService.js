@@ -4,7 +4,7 @@ const { models } = require('../libs/sequelize'); //Usando ORM PARA USAR MODELOS
 
 class ReportServices {
   async find(query) {
-    //Se realziará filtrados por empresa, cliente, fechas y operadores
+    //Se realizará filtrados por empresa, cliente, fechas y operadores
     //Solo de tickets finalizados y con todo el detalle de solicitudes y controles de tiempo
     const { rol, idemp, idclient, dateini, datefin, filter } = query;
     const estatusEspecifico = ['finalizado'];
@@ -65,10 +65,11 @@ class ReportServices {
           break;
 
         default:
-          options.where.fecha_reg = dateini;
-          // options.where.fecha_reg = {
-          //   [Op.between]: [`${dateini} 00:00:00`, `${datefin} 23:59:59`],
-          // };
+          //options.where.fecha_reg = dateini;
+          //Se coloca la fecha de inicio por defecto y que busque entre todo el día indicado por sus horas
+          options.where.fecha_reg = {
+            [Op.between]: [`${dateini} 00:00:00`, `${dateini} 23:59:59`],
+          };
           break;
       }
     }
@@ -173,10 +174,12 @@ class ReportServices {
         default:
           options.where = {
             ...options.where,
-            '$mtr_tickets.fecha_reg$': dateini,
+            '$mtr_tickets.fecha_reg$': {
+              [Op.between]: [`${dateini} 00:00:00`, `${dateini} 23:59:59`],
+            },
           };
           // options.where.fecha_reg = {
-          //   [Op.between]: [`${dateini} 00:00:00`, `${datefin} 23:59:59`],
+          //   [Op.between]: [`${dateini} 00:00:00`, `${dateini} 23:59:59`],
           // };
           break;
       }

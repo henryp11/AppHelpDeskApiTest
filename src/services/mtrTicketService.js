@@ -8,7 +8,7 @@ class MtrTicketServices {
     const estatusEspecifico = ['solicitado', 'proceso', 'detenido'];
     const options = {
       where: {},
-      order: [['id_ticket', 'DESC']],
+      order: [['fecha_reg', 'DESC']],
       include: [
         { association: 'personal_emp', include: 'empresa' },
         'det_tickets',

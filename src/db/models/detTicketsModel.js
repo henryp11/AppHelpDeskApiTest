@@ -44,6 +44,12 @@ const detTicketsSchema = {
   },
   capturas: {
     type: DataTypes.JSON,
+    defaultValue: {
+      file1: { name: '', url: '', type: '', size: '' },
+      file2: { name: '', url: '', type: '', size: '' },
+      file3: { name: '', url: '', type: '', size: '' },
+      file4: { name: '', url: '', type: '', size: '' },
+    },
     comment:
       'Json donde se almacenarán rutas de las imágenes de diferentes capturas que desee subir el usuario de la solicitud si fuera el caso.',
   },
