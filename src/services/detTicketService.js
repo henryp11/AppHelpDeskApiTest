@@ -74,17 +74,7 @@ class DetTicketServices {
   //Al momento de crearlas
   async filterIdTicketIdSolicitud(id_ticket, id_solicitud) {
     //Verifico si el ticket y solicitud que estoy buscando poseen registros de Control
-    let haveControl = false;
-    try {
-      const regFind = await serviceControl.filterByTicketSolicitud(
-        id_ticket,
-        id_solicitud
-      );
-      console.log({ regFind: regFind });
-      haveControl = regFind.length > 0 && true;
-    } catch (error) {
-      console.log(`Error desde servicio de Control Ticket: ${error}`);
-    }
+    //let haveControl = false;
 
     const options = {
       where: {},
@@ -99,33 +89,69 @@ class DetTicketServices {
       ],
     };
 
+    try {
+      const regFind = await serviceControl.filterByTicketSolicitud(
+        id_ticket,
+        id_solicitud
+      );
+      console.log({ regFind: regFind });
+      // haveControl = regFind.length > 0 && true;
+
+      if (regFind.length > 0) {
+        options.where = {
+          id_ticket: id_ticket,
+          id_solicitud: id_solicitud,
+          '$control_tickets.id_ticket$': id_ticket,
+          '$control_tickets.id_solicitud$': id_solicitud,
+        };
+
+        options.include.push({ association: 'control_tickets' });
+      } else {
+        //Si no se encontro los controles se realiza la busqueda solo a nivel de detalle de solicitudes
+        //Sin Control de tickets.
+        options.where = {
+          id_ticket: id_ticket,
+          id_solicitud: id_solicitud,
+        };
+      }
+
+      const answer = await models.DetTickets.findAll(options);
+      if (!answer) {
+        throw boom.notFound('Ticket o Solicitud no encontrado');
+      }
+      return answer;
+    } catch (error) {
+      console.log(`Error desde servicio de Control Ticket: ${error}`);
+    }
+
     //Si se encontró registros de control, en la consulta envío en el where el ticket y solicitud
     //Especificos para ver sus controles mediante la consulta de sequelize por anidamiento
     // Y se incluye la asociación con la tabla de control_tickets
-    if (haveControl) {
-      options.where = {
-        id_ticket: id_ticket,
-        id_solicitud: id_solicitud,
-        '$control_tickets.id_ticket$': id_ticket,
-        '$control_tickets.id_solicitud$': id_solicitud,
-      };
+    // if (haveControl) {
+    //   options.where = {
+    //     id_ticket: id_ticket,
+    //     id_solicitud: id_solicitud,
+    //     '$control_tickets.id_ticket$': id_ticket,
+    //     '$control_tickets.id_solicitud$': id_solicitud,
+    //   };
 
-      options.include.push({ association: 'control_tickets' });
-    } else {
-      //Si no se encontrol los controles se realiza la busqueda solo a nivel de detalle de solicitudes
-      //Sin Control de tickets.
-      options.where = {
-        id_ticket: id_ticket,
-        id_solicitud: id_solicitud,
-      };
-    }
+    //   options.include.push({ association: 'control_tickets' });
+    // } else {
+    //   //Si no se encontrol los controles se realiza la busqueda solo a nivel de detalle de solicitudes
+    //   //Sin Control de tickets.
+    //   options.where = {
+    //     id_ticket: id_ticket,
+    //     id_solicitud: id_solicitud,
+    //   };
+    // }
 
-    const answer = await models.DetTickets.findAll(options);
-    if (!answer) {
-      throw boom.notFound('Ticket o Solicitud no encontrado');
-    }
-    return answer;
+    // const answer = await models.DetTickets.findAll(options);
+    // if (!answer) {
+    //   throw boom.notFound('Ticket o Solicitud no encontrado');
+    // }
+    // return answer;
   }
+
   async filterAllSolByTicket(id_ticket) {
     const options = {
       where: {
