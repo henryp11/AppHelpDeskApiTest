@@ -70,7 +70,7 @@ const controlTicketsSchema = {
     defaultValue: false,
     comment: 'Indica si la solicitud tuvo que ser reasignada a otro agente',
   },
-  motivo_reasig: {
+  motivo_reasig_pausa: {
     type: DataTypes.STRING(255),
     comment: 'Motivo de reasignación de la solicitud',
   },

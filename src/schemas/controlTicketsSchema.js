@@ -10,7 +10,7 @@ const hora_ini_atencion = Joi.string().pattern(/^\d{2}:\d{2}:\d{2}$/);
 const hora_fin_atencion = Joi.string().pattern(/^\d{2}:\d{2}:\d{2}$/);
 const tiempo_calc = Joi.number().precision(2);
 const reasignado = Joi.boolean();
-const motivo_reasig = Joi.string().max(255);
+const motivo_reasig_pausa = Joi.string().max(255);
 const nivel_complejidad = Joi.string().max(2);
 //Para Paginación
 const offset = Joi.number().integer();
@@ -27,7 +27,7 @@ const createControlSchema = Joi.object({
   hora_fin_atencion: hora_fin_atencion,
   tiempo_calc: tiempo_calc,
   reasignado: reasignado,
-  motivo_reasig: motivo_reasig,
+  motivo_reasig_pausa: motivo_reasig_pausa,
   nivel_complejidad: nivel_complejidad,
 });
 
@@ -42,7 +42,7 @@ const updateControlSchema = Joi.object({
   hora_fin_atencion: hora_fin_atencion,
   tiempo_calc: tiempo_calc,
   reasignado: reasignado,
-  motivo_reasig: motivo_reasig,
+  motivo_reasig_pausa: motivo_reasig_pausa,
   nivel_complejidad: nivel_complejidad,
 });
 
