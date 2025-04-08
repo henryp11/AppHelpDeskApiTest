@@ -76,6 +76,10 @@ const agentesSchema = {
 class Agentes extends Model {
   static assocciate(models) {
     this.belongsTo(models.Users, { as: 'users', foreignKey: 'id_user' });
+    this.hasMany(models.DetTickets, {
+      as: 'det_tickets',
+      foreignKey: 'agente_asig',
+    });
   }
 
   static config(sequelize) {

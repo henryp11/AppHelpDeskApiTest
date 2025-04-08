@@ -14,7 +14,7 @@ const capturas = Joi.any();
 const agente_asig = Joi.string().alphanum().min(4).max(4);
 const fecha_ini_solucion = Joi.any();
 const fecha_fin_solucion = Joi.any();
-const solucion = Joi.string();
+const solucion = Joi.string().empty();
 const estatus = Joi.string().max(11);
 //Para Paginación
 const offset = Joi.number().integer();

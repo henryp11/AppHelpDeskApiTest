@@ -26,6 +26,20 @@ router.get(
   }
 );
 
+router.get(
+  '/solicAgentes',
+  passport.authenticate('jwt', { session: false }),
+  checkRoles('admin', 'agente'),
+  async (req, res, next) => {
+    try {
+      const data = await service.findSolicAgentes(req.query);
+      res.json(data);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
 router.post(
   '/',
   passport.authenticate('jwt', { session: false }),

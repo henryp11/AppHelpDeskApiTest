@@ -18,6 +18,21 @@ class AgentesServices {
     return answer;
   }
 
+  //Se utilizará para mostrar al inicio de la pantalla de agentes la cantidad de solicitudes en proceso de atención
+  async findSolicAgentes(query) {
+    const { agent } = query;
+    const estatusEspecifico = ['asignado', 'proceso', 'pausado', 'reasignado'];
+    const options = {
+      where: {
+        '$det_tickets.estatus$': estatusEspecifico,
+      },
+      include: ['det_tickets'],
+    };
+
+    const answer = await models.Agentes.findAll(options);
+    return answer;
+  }
+
   async create(data) {
     const newRegister = await models.Agentes.create(data);
     return { message: 'Registro creado con éxito', newRegister };

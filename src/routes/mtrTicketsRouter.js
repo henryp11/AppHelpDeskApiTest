@@ -27,6 +27,20 @@ router.get(
   }
 );
 
+router.get(
+  '/count',
+  passport.authenticate('jwt', { session: false }),
+  validatorHandler(queryTicketSchema, 'query'),
+  async (req, res, next) => {
+    try {
+      const data = await service.counterReg(req.query);
+      res.json(data);
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
 //Creando Post
 router.post(
   '/',
@@ -38,7 +52,12 @@ router.post(
       const body = req.body;
       const user = req.user; //el objeto user viene de req del payload de JWT
       console.log({ userMtr: user });
-      const newReg = await service.create(body, user.idClient, user.idEmp);
+      const newReg = await service.create(
+        body,
+        user.idClient,
+        user.idEmp,
+        user.perfil
+      ); //Se envía perfil para saber si crea el ticket un cliente o un agente/admin
       res.status(201).json(newReg);
     } catch (error) {
       next(error);

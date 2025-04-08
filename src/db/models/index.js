@@ -34,6 +34,7 @@ function setupModels(sequelize) {
   MtrTickets.assocciate(sequelize.models);
   DetTickets.assocciate(sequelize.models);
   ControlTickets.assocciate(sequelize.models);
+  Agentes.assocciate(sequelize.models);
 }
 
 module.exports = setupModels;

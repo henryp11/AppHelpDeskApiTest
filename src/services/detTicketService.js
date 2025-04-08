@@ -17,6 +17,8 @@ class DetTicketServices {
       'pausado',
       'reasignado',
     ];
+    //Para ver las solicitudes terminadas por agente, a usarse en la pantalla de 'Historial de Tickets atendidos'
+    const estatusHistorico = ['finalizado'];
     const estatusAssign = ['pendiente'];
     const options = {
       where: {},
@@ -41,11 +43,11 @@ class DetTicketServices {
       options.offset = offset;
     }
 
-    //Posibles filtros para tracking:
+    //Posibles filtros para tracking: (Tracking activa para filtrar por estatus Especifico)
     // tracking: Muestra todos los estados excepto finalizado y anulado
-    // pendiente: Muestra solo los pendientes
-
+    // assigment: Muestra solo los pendientes
     if (tracking === 'true') {
+      //Si se envía Assigment=true es para ver los tickets pendientes de asignar.
       if (assigment === 'true') {
         options.where.estatus = estatusAssign;
       } else {
@@ -53,9 +55,21 @@ class DetTicketServices {
       }
     }
 
+    //Muestra las solicitudes ya asignadas a un agente con los estados específicos.
     if (tracking === 'true' && agent !== '') {
       options.where.estatus = estatusEspecifico;
       options.where.agente_asig = agent;
+    }
+
+    //Muestra las solicitudes atendidas (histórico) por agente.
+    if (tracking === 'false' && agent !== '') {
+      options.include.push({ association: 'control_tickets' });
+      options.where.estatus = estatusHistorico;
+      options.where.agente_asig = agent;
+      options.order = [
+        ['id_ticket', 'DESC'],
+        ['id_solicitud', 'DESC'],
+      ];
     }
 
     const answer = await models.DetTickets.findAll(options);
@@ -73,9 +87,6 @@ class DetTicketServices {
   //Se utiliza dentro del Update, pero tambien como ruta independiente para mostrar las solicitudes
   //Al momento de crearlas
   async filterIdTicketIdSolicitud(id_ticket, id_solicitud) {
-    //Verifico si el ticket y solicitud que estoy buscando poseen registros de Control
-    //let haveControl = false;
-
     const options = {
       where: {},
       include: [
@@ -90,13 +101,16 @@ class DetTicketServices {
     };
 
     try {
+      //Se busca controles para el ticket y la solicitud especificada desde los servicios de control
       const regFind = await serviceControl.filterByTicketSolicitud(
         id_ticket,
         id_solicitud
       );
       console.log({ regFind: regFind });
-      // haveControl = regFind.length > 0 && true;
 
+      //Si se encontró registros de control, en la consulta usando los servicios de controles,
+      //envío en el where el ticket y solicitud especificos para ver sus controles
+      //mediante la consulta de sequelize por anidamiento. Y se incluye la asociación con la tabla de control_tickets
       if (regFind.length > 0) {
         options.where = {
           id_ticket: id_ticket,
@@ -123,33 +137,6 @@ class DetTicketServices {
     } catch (error) {
       console.log(`Error desde servicio de Control Ticket: ${error}`);
     }
-
-    //Si se encontró registros de control, en la consulta envío en el where el ticket y solicitud
-    //Especificos para ver sus controles mediante la consulta de sequelize por anidamiento
-    // Y se incluye la asociación con la tabla de control_tickets
-    // if (haveControl) {
-    //   options.where = {
-    //     id_ticket: id_ticket,
-    //     id_solicitud: id_solicitud,
-    //     '$control_tickets.id_ticket$': id_ticket,
-    //     '$control_tickets.id_solicitud$': id_solicitud,
-    //   };
-
-    //   options.include.push({ association: 'control_tickets' });
-    // } else {
-    //   //Si no se encontrol los controles se realiza la busqueda solo a nivel de detalle de solicitudes
-    //   //Sin Control de tickets.
-    //   options.where = {
-    //     id_ticket: id_ticket,
-    //     id_solicitud: id_solicitud,
-    //   };
-    // }
-
-    // const answer = await models.DetTickets.findAll(options);
-    // if (!answer) {
-    //   throw boom.notFound('Ticket o Solicitud no encontrado');
-    // }
-    // return answer;
   }
 
   async filterAllSolByTicket(id_ticket) {

@@ -51,6 +51,40 @@ class MtrTicketServices {
     return answer;
   }
 
+  //Esta función retorna el número de tickets consultados, el cual se usará para paginación y calculo de offsets
+  async counterReg(query) {
+    const { rol, idemp, idclient, tracking } = query;
+    const estatusEspecifico = ['solicitado', 'proceso', 'detenido'];
+    const options = {
+      where: {},
+    };
+
+    //Valido el rol si es distinto de admin, para que el SQL solo muestre los tickets de la empresa a la que pertenece el usuario
+    // Si es admin por el contrario se debe mostrar todos los tickets para todas las empresas
+    if (rol && idemp) {
+      if (rol === 'supervisor') {
+        options.where.id_emp = idemp;
+        if (tracking === 'true') {
+          //PARA TRACKING QUITO LOS ANULADOS Y FINALIZADOS.
+          options.where.estatus = estatusEspecifico;
+        }
+      } else if (rol === 'cliente') {
+        options.where.id_emp = idemp;
+        options.where.id_cliente = idclient;
+        if (tracking === 'true') {
+          options.where.estatus = estatusEspecifico;
+        }
+      } else if (rol === 'agente') {
+        if (tracking === 'true') {
+          options.where.estatus = estatusEspecifico;
+        }
+      }
+    }
+
+    const answer = await models.MtrTickets.count(options);
+    return answer;
+  }
+
   //Filtrar ticket por su id, se asocia con data empresa y detalle del ticket(solicitudes)
   async filterId(id) {
     const options = {
@@ -104,12 +138,21 @@ class MtrTicketServices {
     return tickets;
   }
 
-  async create(data, clientId, idEmp) {
-    const newRegister = await models.MtrTickets.create({
-      ...data,
-      id_cliente: clientId,
-      id_emp: idEmp,
-    });
+  async create(data, clientId, idEmp, perfil) {
+    //Si el perfil es 'cliente' es un ticket normal, donde el id_cliente e id_emp se obtienen del Payload del token JWT
+    //Caso contrario si es agente o administrador, se entiende que es un ticket extemporaneo ingresado manualmente por un agente o admin,
+    //y este es quien envía el dato de la empresa a la cual está ingresando el ticket.
+    const dataFinalTicket =
+      perfil === 'cliente'
+        ? {
+            ...data,
+            id_cliente: clientId,
+            id_emp: idEmp,
+          }
+        : {
+            ...data,
+          };
+    const newRegister = await models.MtrTickets.create(dataFinalTicket);
     return {
       message: 'Ticket registrado, proceda a ingresar su(s) solicitud(es)',
       newRegister,
